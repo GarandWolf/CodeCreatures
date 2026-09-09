@@ -396,6 +396,116 @@ input:focus { border-color: var(--tide); }
   background: var(--bg3);
   color: var(--text);
 }
+
+.col-filters {
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--bg2);
+  border: 1px solid #30363d;
+}
+.col-filters .filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 8px;
+}
+.col-filters .filter-row:first-child { margin-top: 0; }
+.col-filters .filter-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  width: 100%;
+  margin-bottom: 2px;
+}
+.filter-search {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #30363d;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+.filter-chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #30363d;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.filter-chip.active {
+  color: var(--text);
+  border-color: var(--tide);
+  background: rgba(45,212,191,0.15);
+  box-shadow: 0 0 0 1px rgba(45,212,191,0.25);
+}
+.filter-chip[data-tribe="ember"].active { border-color: var(--ember); background: rgba(255,107,53,0.18); box-shadow: 0 0 0 1px rgba(255,107,53,0.3); }
+.filter-chip[data-tribe="tide"].active { border-color: var(--tide); background: rgba(45,212,191,0.18); }
+.filter-chip[data-tribe="growth"].active { border-color: var(--growth); background: rgba(74,222,128,0.18); box-shadow: 0 0 0 1px rgba(74,222,128,0.3); }
+.filter-chip[data-rarity="rare"].active { border-color: var(--rare); background: rgba(167,139,250,0.18); box-shadow: 0 0 0 1px rgba(167,139,250,0.3); }
+.filter-chip[data-rarity="legendary"].active { border-color: var(--legendary); background: rgba(251,191,36,0.18); box-shadow: 0 0 0 1px rgba(251,191,36,0.3); }
+.filter-count {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 700;
+  margin-left: auto;
+}
+.card-art-img {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  display: block;
+}
+.card-art-palette {
+  width: 100%;
+  height: 100%;
+  min-height: 72px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.card-art-palette .card-art-emoji {
+  position: relative;
+  z-index: 1;
+}
+.cv-art .card-art-img {
+  max-height: 180px;
+  width: auto;
+  margin: 0 auto;
+}
+.cv-art .card-art-palette {
+  min-height: 140px;
+  flex: 1;
+}
+.creature-bio {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--bg2);
+  border: 1px solid #30363d;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text);
+}
+.creature-bio .bio-meta {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.creature-bio .bio-meta strong { color: var(--tide); }
+
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1090,6 +1200,46 @@ input:focus { border-color: var(--tide); }
       <button class="btn btn-ember" id="btnImportPaste" type="button" style="margin-top:8px">Import Pasted JSON</button>
       <div class="scan-toast" id="saveToast" role="status" style="margin-top:8px"></div>
     </div>
+
+    <div class="col-filters" id="colFilters">
+      <div class="filter-row">
+        <input type="search" class="filter-search" id="colSearch" placeholder="Search name or id…" autocomplete="off">
+      </div>
+      <div id="creatureFilters">
+        <div class="filter-row">
+          <span class="filter-label">Tribe</span>
+          <button type="button" class="filter-chip active" data-filter="tribe" data-tribe="all">All</button>
+          <button type="button" class="filter-chip" data-filter="tribe" data-tribe="ember">Ember</button>
+          <button type="button" class="filter-chip" data-filter="tribe" data-tribe="tide">Tide</button>
+          <button type="button" class="filter-chip" data-filter="tribe" data-tribe="growth">Growth</button>
+          <span class="filter-count" id="colShowCount"></span>
+        </div>
+        <div class="filter-row">
+          <span class="filter-label">Rarity</span>
+          <button type="button" class="filter-chip active" data-filter="rarity" data-rarity="all">All</button>
+          <button type="button" class="filter-chip" data-filter="rarity" data-rarity="common">Common</button>
+          <button type="button" class="filter-chip" data-filter="rarity" data-rarity="rare">Rare</button>
+          <button type="button" class="filter-chip" data-filter="rarity" data-rarity="legendary">Legendary</button>
+        </div>
+      </div>
+      <div id="itemFilters" style="display:none">
+        <div class="filter-row">
+          <span class="filter-label">Rarity</span>
+          <button type="button" class="filter-chip active" data-filter="item-rarity" data-rarity="all">All</button>
+          <button type="button" class="filter-chip" data-filter="item-rarity" data-rarity="common">Common</button>
+          <button type="button" class="filter-chip" data-filter="item-rarity" data-rarity="rare">Rare</button>
+          <button type="button" class="filter-chip" data-filter="item-rarity" data-rarity="legendary">Legendary</button>
+          <span class="filter-count" id="colItemShowCount"></span>
+        </div>
+        <div class="filter-row">
+          <span class="filter-label">Type</span>
+          <button type="button" class="filter-chip active" data-filter="item-type" data-type="all">All</button>
+          <button type="button" class="filter-chip" data-filter="item-type" data-type="weapon">Weapon</button>
+          <button type="button" class="filter-chip" data-filter="item-type" data-type="armor">Armor</button>
+          <button type="button" class="filter-chip" data-filter="item-type" data-type="charm">Charm</button>
+        </div>
+      </div>
+    </div>
     <div id="col-creatures"></div>
     <div id="col-items" style="display:none"></div>
   </section>
@@ -1420,6 +1570,161 @@ input:focus { border-color: var(--tide); }
 
   const CREATURES = buildCreatures();
   const ITEMS = buildItems();
+
+  /* CREATURE_META: design lore for the 11 originals.
+     Drop finished art by setting artUrl on a meta entry (https or relative path)
+     or by adding the same id to ART_URLS below. */
+  const CREATURE_META = {
+    "sparkpup": {
+    bio: "Sparkpups hunt warm vents and barcode glints like prey, not toys. Their loyalty is transactional — feed the flame or get bitten. Fast, fragile, and already mean: a first Ember partner that teaches trainers the tribe bites back.",
+    silhouette: "Lean hellhound pup, too-long legs, jagged ash-tipped ears, ember slits for eyes, smoking muzzle.",
+    signature: "Pawprints that smolder black; bark throws cinder spit.",
+    palette: ["#ff6b35", "#0c0a09", "#7f1d1d", "#f97316"],
+    role: "scout / glass-speed predator",
+    attack: 12,
+    defense: 8,
+    speed: 14
+    },
+    "cindrax": {
+    bio: "Cindrax stalks scrubland at dusk and erases rival scents with char. Cruel enough to herd prey into dead-end alleys. In a fight it leans hard into ATK, shrugging light hits behind those slag-ridge plates.",
+    silhouette: "Low-slung lizard with coal-ridge spines, cracked charcoal plates, snarl locked in the jaw.",
+    signature: "Belly-heat scorches a black trail; spit leaves slag beads.",
+    palette: ["#ff6b35", "#1c1917", "#9a3412", "#450a0a"],
+    role: "ambush bruiser",
+    attack: 16,
+    defense: 11,
+    speed: 10
+    },
+    "flarewyrm": {
+    bio: "Flarewyrms coil around radio towers and write glowing hexes that fade before dawn. They enjoy being watched. High speed and attack make them mid-team closers — Tide walls melt; witnesses remember the smile.",
+    silhouette: "Serpentine dragonette of ribbon flame and scorched membrane, horns like bent nails, grin of heat-haze teeth.",
+    signature: "Night-sky runes that look like curses until they burn out.",
+    palette: ["#ff6b35", "#a78bfa", "#450a0a", "#0c0a09"],
+    role: "aerial executioner",
+    attack: 22,
+    defense: 14,
+    speed: 16
+    },
+    "ashking": {
+    bio: "Ashking claims foundries, bonfires, and championship ruins as throne rooms. Slow for a legendary, devastating when it lands — defense thick as cooled slag, appetite thicker. Rumor says the crown reforms from the last challenger it burned down.",
+    silhouette: "Infernal lion, mane of floating black cinders, crown of cooling slag, eyes like furnace doors.",
+    signature: "Roar that briefly turns the skyline blood-amber; ash falls like snow.",
+    palette: ["#fbbf24", "#ff6b35", "#0c0a09", "#7f1d1d"],
+    role: "legendary tyrant",
+    attack: 28,
+    defense: 20,
+    speed: 12
+    },
+    "droplet": {
+    bio: "Droplets roll out of leaky faucets and puddle in grocery parking lots after rain. Harmless until they learn to aim—then those little body-checks hit with surprising timing. Perfect starter Tide: even stats, high speed, endless curiosity.",
+    silhouette: "Bright bead-body with tiny limbs, always mid-bounce, soft highlight.",
+    signature: "Splits into two smaller beads when startled (visual gag, not a mechanic).",
+    palette: ["#2dd4bf", "#0f766e", "#99f6e4", "#042f2e"],
+    role: "speed nuisance",
+    attack: 10,
+    defense: 10,
+    speed: 16
+    },
+    "ripscale": {
+    bio: "Ripscale schools under bridges and races anything that moves. Balanced ATK/DEF keep it honest in early battles; the silver spray is half camouflage, half showmanship. Trainers who feed it shiny bottlecaps swear it swims faster.",
+    silhouette: "Streamlined fish with knife-fin edges, silver spray mane.",
+    signature: "Cuts current into ribbon-spray when turning.",
+    palette: ["#2dd4bf", "#164e63", "#e0f2fe", "#083344"],
+    role: "midline fish",
+    attack: 15,
+    defense: 13,
+    speed: 11
+    },
+    "tidecaller": {
+    bio: "Tidecaller prefers quiet harbors and talks to things living under piers. Rare, deliberate, and spooky-cute—its attacks feel like the water deciding for you. Strong all-rounder stats for Tide teams that want pressure without going full glass.",
+    silhouette: "Upright octopus form, mantle like a cloak, eyes like lanterns.",
+    signature: "Whisper-gestures that pull mist into shapes.",
+    palette: ["#2dd4bf", "#a78bfa", "#5eead4", "#134e4a"],
+    role: "control caster",
+    attack: 20,
+    defense: 16,
+    speed: 15
+    },
+    "krakensoul": {
+    bio: "Krakensoul isn’t a beast so much as a memory of one wearing water. Legendary Tide presence: thick defense, crushing attack, unnerving calm. Sailors claim scanning a crate from a sunken shipping line once woke one—and the barcode never scanned the same again.",
+    silhouette: "Massive squid-body of translucent tide, inner dark silhouette of something older.",
+    signature: "Abyss echo—secondary shadow that moves a half-beat late.",
+    palette: ["#fbbf24", "#2dd4bf", "#0e7490", "#020617"],
+    role: "legendary abyss",
+    attack: 26,
+    defense: 21,
+    speed: 13
+    },
+    "sproutling": {
+    bio: "Sproutlings pop up in sidewalk cracks and server-room planters alike. Gentle, sticky-fingered, and weirdly good at finding barcodes under leaves. Ideal first Growth partner: balanced, earnest, and always leaning toward the light.",
+    silhouette: "Tiny bipedal sprout, leaf-hat, root-toes, big hopeful eyes.",
+    signature: "Soil crumbs that spell tiny runes when it jumps.",
+    palette: ["#4ade80", "#14532d", "#bbf7d0", "#365314"],
+    role: "starter seedling",
+    attack: 11,
+    defense: 12,
+    speed: 13
+    },
+    "vineguard": {
+    bio: "Vineguard stands where gardens meet alleys, more bouncer than beast. Lowest speed in the originals, highest early DEF—built to eat hits so fragile growers can work. Kind eyes; unkind grip if you threaten the grove.",
+    silhouette: "Stocky guardian woven from vines, shield-leaf on one arm, rooted stance.",
+    signature: "Roots flare when it braces—instant mini-fort.",
+    palette: ["#4ade80", "#166534", "#86efac", "#1c1917"],
+    role: "wall / protector",
+    attack: 14,
+    defense: 18,
+    speed: 8
+    },
+    "bloomheart": {
+    bio: "Bloomheart is the Growth tribe’s quiet sovereign—less roar, more inevitable spring. Legendary ATK with enough speed to matter, defense that feels like layered petals. Collectors say the core never fully closes for a trainer it trusts.",
+    silhouette: "Floral humanoid torso opening into a luminous heart-bloom, petal cape.",
+    signature: "Petals open/close with the sun—core light pulses like a heartbeat.",
+    palette: ["#fbbf24", "#4ade80", "#fb7185", "#052e16"],
+    role: "legendary core",
+    attack: 24,
+    defense: 17,
+    speed: 14
+    },
+  };
+  const ART_URLS = {}; // id -> art image URL (optional overlay for any creature)
+
+
+  function getCreatureMeta(id) {
+    return CREATURE_META[id] || null;
+  }
+
+  function applyCreatureMetaStats() {
+    Object.keys(CREATURE_META).forEach(id => {
+      const m = CREATURE_META[id];
+      if (!m) return;
+      const c = CREATURES.find(x => x.id === id);
+      if (!c) return;
+      if (typeof m.attack === 'number') c.attack = m.attack;
+      if (typeof m.defense === 'number') c.defense = m.defense;
+      if (typeof m.speed === 'number') c.speed = m.speed;
+    });
+  }
+  applyCreatureMetaStats();
+
+  function creatureArtHtml(c, extraClass) {
+    const meta = getCreatureMeta(c.id) || {};
+    const url = meta.artUrl || ART_URLS[c.id] || '';
+    const cls = extraClass ? (' ' + extraClass) : '';
+    if (url) {
+      return '<img class="card-art-img' + cls + '" src="' + url.replace(/"/g, '&quot;') + '" alt="">';
+    }
+    if (meta.palette && meta.palette.length) {
+      const p = meta.palette;
+      const g1 = p[0] || '#888';
+      const g2 = p[1] || '#333';
+      const g3 = p[2] || g1;
+      const g4 = p[3] || g2;
+      const style = 'background: radial-gradient(ellipse at 35% 30%, ' + g1 + 'aa, transparent 55%), linear-gradient(145deg, ' + g2 + ' 0%, ' + g3 + ' 48%, ' + g4 + ' 100%);';
+      return '<div class="card-art-palette' + cls + '" style="' + style + '"><span class="card-art-emoji">' + c.emoji + '</span></div>';
+    }
+    return '<span class="card-art-emoji' + cls + '">' + c.emoji + '</span>';
+  }
+
 
   const TYPE_ADV = { ember: 'tide', tide: 'growth', growth: 'ember' };
   const SAVE_KEY = 'codecreatures-save';
@@ -1971,74 +2276,159 @@ input:focus { border-color: var(--tide); }
   });
 
   // ========== COLLECTION ==========
+  let colFilter = {
+    search: '',
+    tribe: 'all',
+    rarity: 'all',
+    itemRarity: 'all',
+    itemType: 'all',
+    tab: 'creatures'
+  };
+
+  function syncFilterPanels() {
+    const cPanel = $('#creatureFilters');
+    const iPanel = $('#itemFilters');
+    if (cPanel) cPanel.style.display = colFilter.tab === 'creatures' ? '' : 'none';
+    if (iPanel) iPanel.style.display = colFilter.tab === 'items' ? '' : 'none';
+  }
+
   $$('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       $$('.tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       const which = tab.dataset.ctab;
+      colFilter.tab = which;
       $('#col-creatures').style.display = which === 'creatures' ? '' : 'none';
       $('#col-items').style.display = which === 'items' ? '' : 'none';
+      syncFilterPanels();
+      renderCollection();
     });
   });
+
+  const colSearchEl = $('#colSearch');
+  if (colSearchEl) {
+    colSearchEl.addEventListener('input', () => {
+      colFilter.search = (colSearchEl.value || '').trim().toLowerCase();
+      renderCollection();
+    });
+  }
+  $$('#colFilters .filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const kind = chip.dataset.filter;
+      if (kind === 'tribe') {
+        colFilter.tribe = chip.dataset.tribe || 'all';
+        $$('#creatureFilters [data-filter="tribe"]').forEach(c => c.classList.toggle('active', c === chip));
+      } else if (kind === 'rarity') {
+        colFilter.rarity = chip.dataset.rarity || 'all';
+        $$('#creatureFilters [data-filter="rarity"]').forEach(c => c.classList.toggle('active', c === chip));
+      } else if (kind === 'item-rarity') {
+        colFilter.itemRarity = chip.dataset.rarity || 'all';
+        $$('#itemFilters [data-filter="item-rarity"]').forEach(c => c.classList.toggle('active', c === chip));
+      } else if (kind === 'item-type') {
+        colFilter.itemType = chip.dataset.type || 'all';
+        $$('#itemFilters [data-filter="item-type"]').forEach(c => c.classList.toggle('active', c === chip));
+      }
+      renderCollection();
+    });
+  });
+  syncFilterPanels();
 
   function renderCollection() {
     const cEl = $('#col-creatures');
     const iEl = $('#col-items');
+    const q = colFilter.search;
+
     if (!save.creatures.length) {
       cEl.innerHTML = '<div class="empty-state"><div class="big">📭</div>No creatures yet.<br>Scan a code to unlock one!</div>';
+      const cc = $('#colShowCount');
+      if (cc) cc.textContent = '';
     } else {
-      cEl.innerHTML = '<div class="grid">' + save.creatures.map(entry => {
+      const ownedList = [];
+      save.creatures.forEach(entry => {
         const id = creatureEntryId(entry);
         const c = CREATURES.find(x => x.id === id);
-        if (!c) return '';
-        const eq = getEquippedItem(id);
-        const st = effectiveStats(c);
-        const equipMark = eq
-          ? '<span class="equip-chip" title="Equipped: ' + eq.name + '">' + eq.emoji + '</span>'
-          : '';
-        return '<div class="creature-tile ' + c.tribe + ' rarity-' + c.rarity + '" data-cid="' + c.id + '">' +
-          equipMark +
-          '<div class="card-art"><span class="card-art-emoji">' + c.emoji + '</span></div>' +
-          '<div class="card-banner">' + c.name + '</div>' +
-          '<div class="card-badges">' +
-            '<span class="badge badge-' + c.tribe + '">' + c.tribe + '</span>' +
-            '<span class="badge badge-' + c.rarity + '">' + c.rarity + '</span>' +
-          '</div>' +
-          '<div class="card-stats">' +
-            '<span class="card-stat">ATK<strong>' + st.attack + '</strong></span>' +
-            '<span class="card-stat">DEF<strong>' + st.defense + '</strong></span>' +
-            '<span class="card-stat">SPD<strong>' + st.speed + '</strong></span>' +
-          '</div>' +
-          '</div>';
-      }).join('') + '</div>';
-      cEl.querySelectorAll('.creature-tile').forEach(tile => {
-        tile.addEventListener('click', () => openCreatureDetail(tile.dataset.cid));
+        if (!c) return;
+        ownedList.push(c);
       });
+      const filtered = ownedList.filter(c => {
+        if (colFilter.tribe !== 'all' && c.tribe !== colFilter.tribe) return false;
+        if (colFilter.rarity !== 'all' && c.rarity !== colFilter.rarity) return false;
+        if (q) {
+          const hay = (c.name + ' ' + c.id).toLowerCase();
+          if (hay.indexOf(q) === -1) return false;
+        }
+        return true;
+      });
+      const cc = $('#colShowCount');
+      if (cc) cc.textContent = filtered.length + ' shown';
+      if (!filtered.length) {
+        cEl.innerHTML = '<div class="empty-state"><div class="big">🔍</div>No creatures match these filters.<br>Try clearing search or chips.</div>';
+      } else {
+        cEl.innerHTML = '<div class="grid">' + filtered.map(c => {
+          const eq = getEquippedItem(c.id);
+          const st = effectiveStats(c);
+          const equipMark = eq
+            ? '<span class="equip-chip" title="Equipped: ' + eq.name + '">' + eq.emoji + '</span>'
+            : '';
+          return '<div class="creature-tile ' + c.tribe + ' rarity-' + c.rarity + '" data-cid="' + c.id + '">' +
+            equipMark +
+            '<div class="card-art">' + creatureArtHtml(c) + '</div>' +
+            '<div class="card-banner">' + c.name + '</div>' +
+            '<div class="card-badges">' +
+              '<span class="badge badge-' + c.tribe + '">' + c.tribe + '</span>' +
+              '<span class="badge badge-' + c.rarity + '">' + c.rarity + '</span>' +
+            '</div>' +
+            '<div class="card-stats">' +
+              '<span class="card-stat">ATK<strong>' + st.attack + '</strong></span>' +
+              '<span class="card-stat">DEF<strong>' + st.defense + '</strong></span>' +
+              '<span class="card-stat">SPD<strong>' + st.speed + '</strong></span>' +
+            '</div>' +
+            '</div>';
+        }).join('') + '</div>';
+        cEl.querySelectorAll('.creature-tile').forEach(tile => {
+          tile.addEventListener('click', () => openCreatureDetail(tile.dataset.cid));
+        });
+      }
     }
 
     const ownedItems = Object.keys(save.items).filter(id => save.items[id] > 0);
     if (!ownedItems.length) {
       iEl.innerHTML = '<div class="empty-state"><div class="big">🎒</div>No items yet.<br>Scan codes to discover them.</div>';
+      const ic = $('#colItemShowCount');
+      if (ic) ic.textContent = '';
     } else {
-      iEl.innerHTML = '<div class="grid">' + ownedItems.map(id => {
-        const it = ITEMS.find(x => x.id === id);
-        if (!it) return '';
-        const typeLabel = it.type === 'weapon' ? '+ATK' : it.type === 'armor' ? '+DEF' : '+SPD';
-        const typeName = it.type.charAt(0).toUpperCase() + it.type.slice(1);
-        return '<div class="item-tile rarity-' + it.rarity + '" data-iid="' + it.id + '">' +
-          '<span class="qty-badge">×' + save.items[id] + '</span>' +
-          '<div class="card-art"><span class="card-art-emoji">' + it.emoji + '</span></div>' +
-          '<div class="card-banner">' + it.name + '</div>' +
-          '<div class="card-badges">' +
-            '<span class="badge badge-' + it.rarity + '">' + it.rarity + '</span>' +
-            '<span class="badge badge-common">' + typeName + '</span>' +
-          '</div>' +
-          '<div class="card-bonus">' + typeLabel + ' ' + it.bonus + '</div>' +
-          '</div>';
-      }).join('') + '</div>';
-      iEl.querySelectorAll('.item-tile').forEach(tile => {
-        tile.addEventListener('click', () => openItemDetail(tile.dataset.iid));
+      const filteredItems = ownedItems.map(id => ITEMS.find(x => x.id === id)).filter(Boolean).filter(it => {
+        if (colFilter.itemRarity !== 'all' && it.rarity !== colFilter.itemRarity) return false;
+        if (colFilter.itemType !== 'all' && it.type !== colFilter.itemType) return false;
+        if (q) {
+          const hay = (it.name + ' ' + it.id).toLowerCase();
+          if (hay.indexOf(q) === -1) return false;
+        }
+        return true;
       });
+      const ic = $('#colItemShowCount');
+      if (ic) ic.textContent = filteredItems.length + ' shown';
+      if (!filteredItems.length) {
+        iEl.innerHTML = '<div class="empty-state"><div class="big">🔍</div>No items match these filters.<br>Try clearing search or chips.</div>';
+      } else {
+        iEl.innerHTML = '<div class="grid">' + filteredItems.map(it => {
+          const typeLabel = it.type === 'weapon' ? '+ATK' : it.type === 'armor' ? '+DEF' : '+SPD';
+          const typeName = it.type.charAt(0).toUpperCase() + it.type.slice(1);
+          return '<div class="item-tile rarity-' + it.rarity + '" data-iid="' + it.id + '">' +
+            '<span class="qty-badge">×' + save.items[it.id] + '</span>' +
+            '<div class="card-art"><span class="card-art-emoji">' + it.emoji + '</span></div>' +
+            '<div class="card-banner">' + it.name + '</div>' +
+            '<div class="card-badges">' +
+              '<span class="badge badge-' + it.rarity + '">' + it.rarity + '</span>' +
+              '<span class="badge badge-common">' + typeName + '</span>' +
+            '</div>' +
+            '<div class="card-bonus">' + typeLabel + ' ' + it.bonus + '</div>' +
+            '</div>';
+        }).join('') + '</div>';
+        iEl.querySelectorAll('.item-tile').forEach(tile => {
+          tile.addEventListener('click', () => openItemDetail(tile.dataset.iid));
+        });
+      }
     }
   }
 
@@ -2268,7 +2658,7 @@ input:focus { border-color: var(--tide); }
             equipMark +
             '<div class="cv-art">' +
               holoHtml +
-              '<span class="cv-art-emoji">' + c.emoji + '</span>' +
+              creatureArtHtml(c) +
             '</div>' +
             '<div class="cv-banner">' + c.name + '</div>' +
             '<div class="cv-badges">' +
@@ -2309,7 +2699,18 @@ input:focus { border-color: var(--tide); }
       '<div class="btn-row">' +
         '<button class="btn btn-primary" id="btnEquip" type="button">Save Equipment</button>' +
         '<button class="btn btn-ghost" id="btnUnequip" type="button">Unequip</button>' +
-      '</div>';
+      '</div>' +
+      (function () {
+        const meta = getCreatureMeta(c.id);
+        if (!meta || !meta.bio) return '';
+        const bits = [];
+        if (meta.role) bits.push('<strong>Role:</strong> ' + meta.role);
+        if (meta.silhouette) bits.push('<strong>Silhouette:</strong> ' + meta.silhouette);
+        return '<div class="creature-bio">' +
+          (bits.length ? '<div class="bio-meta">' + bits.join('<br>') + '</div>' : '') +
+          '<div>' + meta.bio + '</div>' +
+          '</div>';
+      })();
 
     $('#btnEquip').addEventListener('click', () => {
       const val = $('#equipSelect').value;

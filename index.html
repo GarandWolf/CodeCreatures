@@ -1022,9 +1022,27 @@ input:focus { border-color: var(--tide); }
     };
   }
 
-  function loadSave() {
+  /** localStorage throws in sandboxed iframes (no allow-same-origin). */
+  function getLocalStorage() {
     try {
-      const raw = localStorage.getItem(SAVE_KEY);
+      const ls = window.localStorage;
+      if (!ls) return null;
+      const k = '__cc_probe__';
+      ls.setItem(k, '1');
+      ls.removeItem(k);
+      return ls;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  const storage = getLocalStorage();
+  const storageEphemeral = !storage;
+
+  function loadSave() {
+    if (!storage) return defaultSave();
+    try {
+      const raw = storage.getItem(SAVE_KEY);
       if (!raw) return defaultSave();
       const data = JSON.parse(raw);
       return {
@@ -1040,7 +1058,12 @@ input:focus { border-color: var(--tide); }
   }
 
   function persist() {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+    if (!storage) return; // in-memory session only
+    try {
+      storage.setItem(SAVE_KEY, JSON.stringify(save));
+    } catch (e) {
+      console.warn('persist failed', e);
+    }
   }
 
   let save = loadSave();
@@ -1396,6 +1419,10 @@ input:focus { border-color: var(--tide); }
   $('#btnStartCam').disabled = false;
   if (!(location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
     setCamStatus('Camera needs HTTPS or localhost. Manual Entry and Simulate Scan work anytime.');
+  }
+  if (storageEphemeral) {
+    setCamStatus('Storage blocked in this preview — progress won’t stick. Open https://garandwolf.github.io/CodeCreatures/ in your browser for saves. Simulate still works here.');
+    showScanToast('Preview sandbox: saves are temporary. Use GitHub Pages for real progress.');
   }
 
 

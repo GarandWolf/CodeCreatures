@@ -4,6 +4,8 @@ Single-file HTML5 collectible / battle game. Scan barcodes or QR codes to unlock
 
 **Play:** open `index.html` over HTTPS or `http://localhost` (camera needs a secure context). On `file://`, use **Manual Entry** or **Simulate Scan**.
 
+> **Note:** In-app HTML previews often sandbox the page and block `localStorage`. The game still runs in memory there; open the [GitHub Pages site](https://garandwolf.github.io/CodeCreatures/) (or `localhost`) in a normal browser tab for lasting saves.
+
 ## Features
 
 - Camera barcode scan (UPC / EAN / QR via ZXing CDN) + manual entry + Simulate Scan

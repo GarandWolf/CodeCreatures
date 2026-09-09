@@ -1111,7 +1111,7 @@ input:focus { border-color: var(--tide); }
   <section id="screen-battle" class="screen">
     <div class="card">
       <h2>Battle Arena</h2>
-      <p class="hint" style="margin-top:0;margin-bottom:12px">Auto-battle your team of 3 vs a random enemy squad. Speed decides who strikes first.</p>
+      <p class="hint" style="margin-top:0;margin-bottom:12px">Auto-battle your team of 3 vs unknown wild signals. Identities stay hidden until you unlock them by scanning. Speed decides who strikes first.</p>
       <button class="btn btn-ember" id="btnStartBattle" type="button">Start Battle</button>
     </div>
     <div id="battleArea" style="display:none">
@@ -2016,7 +2016,7 @@ input:focus { border-color: var(--tide); }
 
     const ownedItems = Object.keys(save.items).filter(id => save.items[id] > 0);
     if (!ownedItems.length) {
-      iEl.innerHTML = '<div class="empty-state"><div class="big">🎒</div>No items yet.<br>About 1 in 3 scans yields an item.</div>';
+      iEl.innerHTML = '<div class="empty-state"><div class="big">🎒</div>No items yet.<br>Scan codes to discover them.</div>';
     } else {
       iEl.innerHTML = '<div class="grid">' + ownedItems.map(id => {
         const it = ITEMS.find(x => x.id === id);
@@ -2442,16 +2442,10 @@ input:focus { border-color: var(--tide); }
   // ========== BATTLE ==========
   let battleBusy = false;
 
-  function randomEnemyTeam() {
-    const shuffled = CREATURES.slice().sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 3).map(c => c.id);
-  }
-
-  function makeFighter(creatureId, isEnemy) {
+  function makeFighter(creatureId) {
     const c = CREATURES.find(x => x.id === creatureId);
-    const base = isEnemy
-      ? { attack: c.attack, defense: c.defense, speed: c.speed, item: null }
-      : effectiveStats(c);
+    if (!c) return null;
+    const base = effectiveStats(c);
     const maxHp = 40 + c.defense * 2 + (c.rarity === 'legendary' ? 20 : c.rarity === 'rare' ? 10 : 0);
     return {
       id: c.id,
@@ -2466,6 +2460,44 @@ input:focus { border-color: var(--tide); }
       maxHp: maxHp,
       alive: true
     };
+  }
+
+  /** Anonymous foes — never reveal unowned catalog creatures/items. */
+  function makeWildEnemyTeam(playerFighters) {
+    const tribes = ['ember', 'tide', 'growth'];
+    const marks = ['❓', '📡', '⬛', '👻', '🌑'];
+    const labels = ['Wild Signal', 'Unknown Code', 'Static Echo', 'Null Spawn'];
+    let refAtk = 14, refDef = 12, refSpd = 12;
+    if (playerFighters && playerFighters.length) {
+      refAtk = Math.round(playerFighters.reduce((s, f) => s + f.attack, 0) / playerFighters.length);
+      refDef = Math.round(playerFighters.reduce((s, f) => s + f.defense, 0) / playerFighters.length);
+      refSpd = Math.round(playerFighters.reduce((s, f) => s + f.speed, 0) / playerFighters.length);
+    }
+    const team = [];
+    for (let i = 0; i < 3; i++) {
+      const jitter = () => Math.floor(Math.random() * 5) - 2;
+      const attack = Math.max(8, refAtk + jitter());
+      const defense = Math.max(6, refDef + jitter());
+      const speed = Math.max(6, refSpd + jitter());
+      const rarityRoll = Math.random();
+      const rarity = rarityRoll > 0.92 ? 'legendary' : rarityRoll > 0.7 ? 'rare' : 'common';
+      const bonus = rarity === 'legendary' ? 20 : rarity === 'rare' ? 10 : 0;
+      const maxHp = 40 + defense * 2 + bonus;
+      team.push({
+        id: 'wild-' + i + '-' + Date.now(),
+        name: labels[i % labels.length] + ' ' + (i + 1),
+        tribe: tribes[Math.floor(Math.random() * 3)],
+        emoji: marks[Math.floor(Math.random() * marks.length)],
+        rarity: rarity,
+        attack: attack,
+        defense: defense,
+        speed: speed,
+        hp: maxHp,
+        maxHp: maxHp,
+        alive: true
+      });
+    }
+    return team;
   }
 
   function renderFighterEl(el, f, side) {
@@ -2536,8 +2568,8 @@ input:focus { border-color: var(--tide); }
     $('#battleArea').style.display = '';
     $('#battleLog').innerHTML = '';
 
-    const playerTeam = teamIds.map(id => makeFighter(id, false));
-    const enemyTeam = randomEnemyTeam().map(id => makeFighter(id, true));
+    const playerTeam = teamIds.map(id => makeFighter(id));
+    const enemyTeam = makeWildEnemyTeam(playerTeam);
     let pIdx = 0;
     let eIdx = 0;
 

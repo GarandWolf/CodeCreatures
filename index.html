@@ -1111,6 +1111,58 @@ input:focus { border-color: var(--tide); }
   border-color: var(--legendary);
   box-shadow: 0 14px 36px rgba(251,191,36,0.35), inset 0 0 0 2px rgba(251,191,36,0.55), inset 0 0 22px rgba(251,191,36,0.2);
 }
+
+.cv-face.item-frame {
+  border-color: rgba(167,139,250,0.65);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(167,139,250,0.35);
+}
+.cv-face.item-frame.rarity-rare {
+  box-shadow: 0 12px 28px rgba(0,0,0,0.45), inset 0 0 18px rgba(167,139,250,0.4);
+}
+.cv-face.item-frame.rarity-legendary {
+  border-color: var(--legendary);
+  box-shadow: 0 14px 36px rgba(251,191,36,0.35), inset 0 0 0 2px rgba(251,191,36,0.55), inset 0 0 22px rgba(251,191,36,0.2);
+}
+.cv-bonus-stamp {
+  margin-top: 10px;
+  text-align: center;
+  font-weight: 900;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(167,139,250,0.35), rgba(167,139,250,0.12));
+  border: 1px solid rgba(167,139,250,0.55);
+  color: #e9d5ff;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.35);
+}
+.cv-qty {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  background: var(--rare);
+  color: #1a1028;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+.token-balance {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--legendary);
+  background: rgba(251,191,36,0.1);
+  border: 1px solid rgba(251,191,36,0.35);
+  border-radius: 999px;
+  padding: 4px 10px;
+  margin: 0 0 10px;
+}
+.token-balance .tok-ico { font-size: 0.95rem; }
 .cv-controls {
   display: flex;
   justify-content: center;
@@ -1188,6 +1240,7 @@ input:focus { border-color: var(--tide); }
       <button class="tab active" data-ctab="creatures" type="button">Creatures</button>
       <button class="tab" data-ctab="items" type="button">Items</button>
     </div>
+    <div class="token-balance" id="tokenBalance" title="Code Coins — earn from battles. Shop can come later."><span class="tok-ico">🪙</span> Code Coins: <span id="tokenBalanceValue">0</span></div>
     <div class="card" style="margin-bottom:12px">
       <h2>Save Data</h2>
       <div class="btn-row">
@@ -1261,7 +1314,8 @@ input:focus { border-color: var(--tide); }
   <section id="screen-battle" class="screen">
     <div class="card">
       <h2>Battle Arena</h2>
-      <p class="hint" style="margin-top:0;margin-bottom:12px">Auto-battle your team of 3 vs unknown wild signals. Identities stay hidden until you unlock them by scanning. Speed decides who strikes first.</p>
+      <div class="token-balance" id="tokenBalanceBattle" title="Code Coins — earn from battles. Shop can come later."><span class="tok-ico">🪙</span> Code Coins: <span id="tokenBalanceBattleValue">0</span></div>
+      <p class="hint" style="margin-top:0;margin-bottom:12px">Auto-battle your team of 3 vs unknown wild signals. Identities stay hidden until you unlock them by scanning. Speed decides who strikes first. Win for Code Coins (no pity).</p>
       <button class="btn btn-ember" id="btnStartBattle" type="button">Start Battle</button>
     </div>
     <div id="battleArea" style="display:none">
@@ -1343,21 +1397,21 @@ input:focus { border-color: var(--tide); }
   ];
 
   const ORIG_ITEMS = [
-    { id: 'sparkblade', name: 'Spark Blade', type: 'weapon', rarity: 'common', bonus: 3, emoji: '🗡️' },
-    { id: 'tideedge', name: 'Tide Edge', type: 'weapon', rarity: 'common', bonus: 3, emoji: '⚔️' },
-    { id: 'thornspear', name: 'Thorn Spear', type: 'weapon', rarity: 'common', bonus: 3, emoji: '🔱' },
-    { id: 'emberfang', name: 'Ember Fang', type: 'weapon', rarity: 'rare', bonus: 7, emoji: '🔥' },
-    { id: 'abysscleaver', name: 'Abyss Cleaver', type: 'weapon', rarity: 'rare', bonus: 7, emoji: '🌊' },
-    { id: 'shellplate', name: 'Shell Plate', type: 'armor', rarity: 'common', bonus: 3, emoji: '🛡️' },
-    { id: 'barkmail', name: 'Bark Mail', type: 'armor', rarity: 'common', bonus: 3, emoji: '🪵' },
-    { id: 'ashguard', name: 'Ash Guard', type: 'armor', rarity: 'common', bonus: 3, emoji: '🧱' },
-    { id: 'tidemail', name: 'Tide Mail', type: 'armor', rarity: 'rare', bonus: 7, emoji: '🪸' },
-    { id: 'ironbloom', name: 'Ironbloom', type: 'armor', rarity: 'rare', bonus: 7, emoji: '🌹' },
-    { id: 'breezecharm', name: 'Breeze Charm', type: 'charm', rarity: 'common', bonus: 3, emoji: '🎐' },
-    { id: 'embercharm', name: 'Ember Charm', type: 'charm', rarity: 'common', bonus: 3, emoji: '✨' },
-    { id: 'rootcharm', name: 'Root Charm', type: 'charm', rarity: 'common', bonus: 3, emoji: '🍀' },
-    { id: 'stormcharm', name: 'Storm Charm', type: 'charm', rarity: 'rare', bonus: 7, emoji: '⚡' },
-    { id: 'mythcharm', name: 'Myth Charm', type: 'charm', rarity: 'rare', bonus: 7, emoji: '💫' }
+    { id: 'sparkblade', name: 'Spark Blade', type: 'weapon', rarity: 'common', bonus: 3, emoji: '🗡️', flavor: 'A light blade that crackles when it finds a seam in code.' },
+    { id: 'tideedge', name: 'Tide Edge', type: 'weapon', rarity: 'common', bonus: 3, emoji: '⚔️', flavor: 'Salt-honed steel that pulls strikes like a rising tide.' },
+    { id: 'thornspear', name: 'Thorn Spear', type: 'weapon', rarity: 'common', bonus: 3, emoji: '🔱', flavor: 'A spear tip grown sharp from bramble and grit.' },
+    { id: 'emberfang', name: 'Ember Fang', type: 'weapon', rarity: 'rare', bonus: 7, emoji: '🔥', flavor: 'Forged in vent heat; the edge never quite cools.' },
+    { id: 'abysscleaver', name: 'Abyss Cleaver', type: 'weapon', rarity: 'rare', bonus: 7, emoji: '🌊', flavor: 'Cuts through pressure the way deep water erases light.' },
+    { id: 'shellplate', name: 'Shell Plate', type: 'armor', rarity: 'common', bonus: 3, emoji: '🛡️', flavor: 'Layered shells that shrug off glancing blows.' },
+    { id: 'barkmail', name: 'Bark Mail', type: 'armor', rarity: 'common', bonus: 3, emoji: '🪵', flavor: 'Living bark woven into a quiet wooden guard.' },
+    { id: 'ashguard', name: 'Ash Guard', type: 'armor', rarity: 'common', bonus: 3, emoji: '🧱', flavor: 'Cooled slag plates that still remember the forge.' },
+    { id: 'tidemail', name: 'Tide Mail', type: 'armor', rarity: 'rare', bonus: 7, emoji: '🪸', flavor: 'Coral-knit mail that flexes with every swell.' },
+    { id: 'ironbloom', name: 'Ironbloom', type: 'armor', rarity: 'rare', bonus: 7, emoji: '🌹', flavor: 'Petal-plates of tempered iron that refuse to wilt.' },
+    { id: 'breezecharm', name: 'Breeze Charm', type: 'charm', rarity: 'common', bonus: 3, emoji: '🎐', flavor: 'A wind-chime trinket that lightens every step.' },
+    { id: 'embercharm', name: 'Ember Charm', type: 'charm', rarity: 'common', bonus: 3, emoji: '✨', flavor: 'A warm spark kept close for courage and pace.' },
+    { id: 'rootcharm', name: 'Root Charm', type: 'charm', rarity: 'common', bonus: 3, emoji: '🍀', flavor: 'Twined roots that steady footing on wild ground.' },
+    { id: 'stormcharm', name: 'Storm Charm', type: 'charm', rarity: 'rare', bonus: 7, emoji: '⚡', flavor: 'Thunder bottled small — speed leaps with every flash.' },
+    { id: 'mythcharm', name: 'Myth Charm', type: 'charm', rarity: 'rare', bonus: 7, emoji: '💫', flavor: 'A rumor made solid; legends swear it quickens fate.' }
   ];
 
   function rosterHash(n) {
@@ -1572,9 +1626,37 @@ input:focus { border-color: var(--tide); }
       usedNames.add(name.toLowerCase());
       const emoji = EMOJI[type][h % EMOJI[type].length];
       const bonus = bonusFor(rarity, h);
-      out.push({ id, name, type, rarity, bonus, emoji });
+      const flavor = makeItemFlavor(name, type, rarity, h);
+      out.push({ id, name, type, rarity, bonus, emoji, flavor });
     }
+    // Ensure originals have flavor (backward-safe if any miss it)
+    out.forEach(it => {
+      if (!it.flavor) it.flavor = makeItemFlavor(it.name, it.type, it.rarity, rosterHash(it.id.length * 17));
+    });
     return out;
+  }
+
+  function makeItemFlavor(name, type, rarity, h) {
+    const templates = {
+      weapon: [
+        '{name} bites clean when {rarity} steel meets a weak point.',
+        'A {type} forged for trainers who strike first and ask later.',
+        '{name} hums softly — a {rarity} edge that never dulls in code.'
+      ],
+      armor: [
+        '{name} settles like a second skin of {rarity} plating.',
+        'A sturdy {type} that turns wild signals into dull thuds.',
+        '{name} was grown, not stamped — {rarity} defense with character.'
+      ],
+      charm: [
+        '{name} whispers speed into tired paws.',
+        'A pocket {type}: small, bright, and oddly persuasive.',
+        '{name} is a {rarity} keepsake that shortens the path between strikes.'
+      ]
+    };
+    const list = templates[type] || templates.charm;
+    const tmpl = list[(h >>> 0) % list.length];
+    return tmpl.replace(/\{name\}/g, name).replace(/\{type\}/g, type).replace(/\{rarity\}/g, rarity);
   }
 
   const CREATURES = buildCreatures();
@@ -1746,7 +1828,9 @@ input:focus { border-color: var(--tide); }
       items: {},
       equipment: {},
       team: [null, null, null],
-      scanLog: {}
+      scanLog: {},
+      tokens: 0, // Code Coins — earn from battles; shop can come later
+      battleWins: 0 // display only
     };
   }
 
@@ -1778,7 +1862,9 @@ input:focus { border-color: var(--tide); }
         items: data.items && typeof data.items === 'object' ? data.items : {},
         equipment: data.equipment && typeof data.equipment === 'object' ? data.equipment : {},
         team: Array.isArray(data.team) && data.team.length === 3 ? data.team : [null, null, null],
-        scanLog: data.scanLog && typeof data.scanLog === 'object' ? data.scanLog : {}
+        scanLog: data.scanLog && typeof data.scanLog === 'object' ? data.scanLog : {},
+        tokens: typeof data.tokens === 'number' && isFinite(data.tokens) ? Math.max(0, Math.floor(data.tokens)) : 0,
+        battleWins: typeof data.battleWins === 'number' && isFinite(data.battleWins) ? Math.max(0, Math.floor(data.battleWins)) : 0
       };
     } catch (e) {
       return defaultSave();
@@ -1936,7 +2022,22 @@ input:focus { border-color: var(--tide); }
     if (el) el.classList.add('active');
     if (name === 'collection') renderCollection();
     if (name === 'team') renderTeam();
+    if (name === 'battle') updateTokenBalanceUI();
     if (name !== 'scan') stopCamera();
+  }
+
+  function ensureTokenFields() {
+    if (typeof save.tokens !== 'number' || !isFinite(save.tokens)) save.tokens = 0;
+    if (typeof save.battleWins !== 'number' || !isFinite(save.battleWins)) save.battleWins = 0;
+  }
+
+  function updateTokenBalanceUI() {
+    ensureTokenFields();
+    const n = save.tokens | 0;
+    const a = document.getElementById('tokenBalanceValue');
+    const b = document.getElementById('tokenBalanceBattleValue');
+    if (a) a.textContent = String(n);
+    if (b) b.textContent = String(n);
   }
 
   $$('.nav-btn').forEach(btn => {
@@ -2243,11 +2344,14 @@ input:focus { border-color: var(--tide); }
       items: Object.assign({}, data.items),
       equipment: Object.assign({}, data.equipment),
       team: [data.team[0] || null, data.team[1] || null, data.team[2] || null],
-      scanLog: data.scanLog && typeof data.scanLog === 'object' ? Object.assign({}, data.scanLog) : {}
+      scanLog: data.scanLog && typeof data.scanLog === 'object' ? Object.assign({}, data.scanLog) : {},
+      tokens: typeof data.tokens === 'number' && isFinite(data.tokens) ? Math.max(0, Math.floor(data.tokens)) : 0,
+      battleWins: typeof data.battleWins === 'number' && isFinite(data.battleWins) ? Math.max(0, Math.floor(data.battleWins)) : 0
     };
     persist();
     renderCollection();
     renderTeam();
+    updateTokenBalanceUI();
     return null;
   }
 
@@ -2356,6 +2460,7 @@ input:focus { border-color: var(--tide); }
   syncFilterPanels();
 
   function renderCollection() {
+    updateTokenBalanceUI();
     const cEl = $('#col-creatures');
     const iEl = $('#col-items');
     const q = colFilter.search;
@@ -2460,24 +2565,48 @@ input:focus { border-color: var(--tide); }
     const typeLabel = it.type === 'weapon' ? '+ATK' : it.type === 'armor' ? '+DEF' : '+SPD';
     const typeName = it.type.charAt(0).toUpperCase() + it.type.slice(1);
     const qty = save.items[iid] || 0;
+    const holo = it.rarity === 'legendary';
+    const faceExtra = 'item-frame rarity-' + it.rarity;
+    const holoHtml = holo
+      ? '<div class="cv-holo' + (prefersReducedMotion() ? '' : ' idle') + '"></div>'
+      : '';
+    const flavor = it.flavor || makeItemFlavor(it.name, it.type, it.rarity, 0);
+
     $('#detailContent').innerHTML =
-      '<div class="detail-head">' +
-        '<div class="detail-emoji">' + it.emoji + '</div>' +
-        '<div class="detail-info">' +
-          '<h3>' + it.name + '</h3>' +
-          '<span class="badge badge-' + it.rarity + '">' + it.rarity + '</span> ' +
-          '<span class="badge badge-common">' + typeName + '</span>' +
+      '<div class="cv-stage">' +
+        '<div class="cv-card">' +
+          '<div class="cv-face cv-face-front ' + faceExtra + '">' +
+            '<span class="cv-qty">×' + qty + '</span>' +
+            '<div class="cv-art">' +
+              holoHtml +
+              '<span class="cv-art-emoji">' + it.emoji + '</span>' +
+            '</div>' +
+            '<div class="cv-banner">' + it.name + '</div>' +
+            '<div class="cv-badges">' +
+              '<span class="badge badge-' + it.rarity + '">' + it.rarity + '</span>' +
+              '<span class="badge badge-common">' + typeName + '</span>' +
+            '</div>' +
+            '<div class="cv-bonus-stamp">' + typeLabel + ' ' + it.bonus + '</div>' +
+          '</div>' +
+          '<div class="cv-face cv-face-back ' + faceExtra + '">' +
+            '<div class="cv-back-emblem">' + cvItemEmblem(it.type) + '</div>' +
+            '<div class="cv-banner">' + it.name + '</div>' +
+            '<p class="cv-back-flavor">' + flavor + '</p>' +
+            '<div class="cv-back-set">CodeCreatures · Item</div>' +
+          '</div>' +
         '</div>' +
       '</div>' +
-      '<p class="hint" style="margin-top:0">Bonus: <strong>' + typeLabel + ' ' + it.bonus + '</strong></p>' +
-      '<p class="hint">Quantity in inventory: <strong>×' + qty + '</strong></p>' +
+      '<div class="cv-controls">' +
+        '<button class="btn btn-tide" id="btnCardFlip" type="button">Flip</button>' +
+      '</div>' +
+      '<p class="hint" style="margin-top:0">Quantity in inventory: <strong>×' + qty + '</strong></p>' +
       '<p class="hint">Equip from a creature card on the Creatures tab.</p>';
-    cvDetachListeners();
+
     const modal = $('#detailModal');
     const sheet = $('#detailSheet');
-    modal.classList.remove('card-viewer-open');
-    if (sheet) sheet.classList.remove('card-viewer-sheet');
-    modal.classList.add('show');
+    modal.classList.add('show', 'card-viewer-open');
+    if (sheet) sheet.classList.add('card-viewer-sheet');
+    cvWireCard('item:' + iid);
   }
 
   // ========== CARD VIEWER STATE ==========
@@ -2495,6 +2624,12 @@ input:focus { border-color: var(--tide); }
     if (tribe === 'ember') return '🔥';
     if (tribe === 'tide') return '🌊';
     return '🌿';
+  }
+
+  function cvItemEmblem(type) {
+    if (type === 'weapon') return '⚔️';
+    if (type === 'armor') return '🛡️';
+    return '✨';
   }
 
   function cvApplyTransform() {
@@ -2525,18 +2660,17 @@ input:focus { border-color: var(--tide); }
     cvState = null;
   }
 
-  function cvWireCard(cid) {
-    const stage = document.querySelector('#detailContent .cv-stage');
-    const card = document.querySelector('#detailContent .cv-card');
-    const holo = document.querySelector('#detailContent .cv-holo');
-    const flipBtn = document.getElementById('btnCardFlip');
-    if (!stage || !card) return;
+  function bindCardTilt(stageEl, cardEl, opts) {
+    opts = opts || {};
+    const holo = opts.holo || null;
+    const flipBtn = opts.flipBtn || null;
+    if (!stageEl || !cardEl) return;
 
     cvDetachListeners();
     cvState = {
-      cid: cid,
-      stage: stage,
-      card: card,
+      cid: opts.id || '',
+      stage: stageEl,
+      card: cardEl,
       holo: holo,
       flipBtn: flipBtn,
       flipped: false,
@@ -2574,9 +2708,9 @@ input:focus { border-color: var(--tide); }
       cvState.startY = e.clientY;
       cvState.baseRX = cvState.rotateX;
       cvState.baseRY = cvState.rotateY;
-      card.classList.add('is-dragging');
+      cardEl.classList.add('is-dragging');
       if (holo) holo.classList.remove('idle');
-      try { stage.setPointerCapture(e.pointerId); } catch (err) {}
+      try { stageEl.setPointerCapture(e.pointerId); } catch (err) {}
       e.preventDefault();
     }
 
@@ -2599,18 +2733,18 @@ input:focus { border-color: var(--tide); }
       if (!cvState || e.pointerId !== cvState.pointerId) return;
       cvState.dragging = false;
       cvState.pointerId = null;
-      card.classList.remove('is-dragging');
+      cardEl.classList.remove('is-dragging');
       // ease toward rest tilt
       cvState.rotateX = 8;
       cvState.rotateY = -10;
       if (prefersReducedMotion()) {
-        card.style.transition = 'none';
+        cardEl.style.transition = 'none';
       } else {
-        card.style.transition = '';
+        cardEl.style.transition = '';
       }
       cvApplyTransform();
       if (holo && !prefersReducedMotion()) holo.classList.add('idle');
-      try { stage.releasePointerCapture(e.pointerId); } catch (err) {}
+      try { stageEl.releasePointerCapture(e.pointerId); } catch (err) {}
     }
 
     function toggleFlip() {
@@ -2619,12 +2753,12 @@ input:focus { border-color: var(--tide); }
       cvState.rotateX = 8;
       cvState.rotateY = -10;
       if (prefersReducedMotion()) {
-        card.style.transition = 'none';
+        cardEl.style.transition = 'none';
         cvApplyTransform();
         // restore next frame so later tilts can animate if motion allowed later
         requestAnimationFrame(() => { if (cvState && cvState.card) cvState.card.style.transition = 'none'; });
       } else {
-        card.style.transition = '';
+        cardEl.style.transition = '';
         cvApplyTransform();
       }
     }
@@ -2637,11 +2771,19 @@ input:focus { border-color: var(--tide); }
       toggleFlip();
     };
 
-    stage.addEventListener('pointerdown', onDown);
-    stage.addEventListener('pointermove', onMove);
-    stage.addEventListener('pointerup', onUp);
-    stage.addEventListener('pointercancel', onUp);
+    stageEl.addEventListener('pointerdown', onDown);
+    stageEl.addEventListener('pointermove', onMove);
+    stageEl.addEventListener('pointerup', onUp);
+    stageEl.addEventListener('pointercancel', onUp);
     if (flipBtn) flipBtn.addEventListener('click', cvState._onFlip);
+  }
+
+  function cvWireCard(cid) {
+    const stage = document.querySelector('#detailContent .cv-stage');
+    const card = document.querySelector('#detailContent .cv-card');
+    const holo = document.querySelector('#detailContent .cv-holo');
+    const flipBtn = document.getElementById('btnCardFlip');
+    bindCardTilt(stage, card, { id: cid, holo: holo, flipBtn: flipBtn });
   }
 
   function openCreatureDetail(cid) {
@@ -3069,12 +3211,31 @@ input:focus { border-color: var(--tide); }
 
     const playerWin = playerTeam.some(f => f.alive);
     const banner = $('#winnerBanner');
+    ensureTokenFields();
+    // Battle stakes: earn-only Code Coins (no pity). Shop can come later.
+    let gained = 0;
     if (playerWin) {
-      banner.innerHTML = '<div class="winner-banner win">🏆 Victory! CodeCreatures win!</div>';
-      logBattle('<span class="log-win">You win the battle!</span>');
+      // 5 base + rarity tier per enemy (common +0, rare +2, legendary +5) + small variance
+      let rarityBonus = 0;
+      enemyTeam.forEach(f => {
+        if (f.rarity === 'legendary') rarityBonus += 5;
+        else if (f.rarity === 'rare') rarityBonus += 2;
+      });
+      const variance = Math.floor(Math.random() * 3); // 0–2
+      gained = 5 + rarityBonus + variance;
+      save.tokens = (save.tokens | 0) + gained;
+      save.battleWins = (save.battleWins | 0) + 1;
+      persist();
+      updateTokenBalanceUI();
+      banner.innerHTML = '<div class="winner-banner win">🏆 Victory! +' + gained + ' Code Coins<br><span style="font-size:0.85rem;font-weight:700">Balance: ' + save.tokens + ' · Wins: ' + save.battleWins + '</span></div>';
+      logBattle('<span class="log-win">You win the battle! +' + gained + ' Code Coins (now ' + save.tokens + ').</span>');
     } else {
-      banner.innerHTML = '<div class="winner-banner lose">💀 Defeat… Train harder!</div>';
-      logBattle('<span class="log-ko">Your team was wiped out.</span>');
+      gained = 2; // consolation so losses aren't empty
+      save.tokens = (save.tokens | 0) + gained;
+      persist();
+      updateTokenBalanceUI();
+      banner.innerHTML = '<div class="winner-banner lose">💀 Defeat… +' + gained + ' Code Coins<br><span style="font-size:0.85rem;font-weight:700">Balance: ' + save.tokens + '</span></div>';
+      logBattle('<span class="log-ko">Your team was wiped out. Consolation +' + gained + ' Code Coins.</span>');
     }
     syncUI();
     battleBusy = false;
@@ -3086,6 +3247,8 @@ input:focus { border-color: var(--tide); }
   $('#btnBattleAgain').addEventListener('click', runBattle);
 
   // Initial
+  ensureTokenFields();
+  updateTokenBalanceUI();
   renderCollection();
   renderTeam();
 })();

@@ -1167,7 +1167,7 @@ input:focus { border-color: var(--tide); }
       <button class="btn btn-primary" id="btnStartCam" type="button">Start Camera</button>
       <button class="btn btn-ghost" id="btnStopCam" type="button" disabled>Stop</button>
     </div>
-    <div class="btn-row">
+    <div class="btn-row" id="simulateScanRow" data-dev-only="simulate">
       <button class="btn btn-tide btn-block" id="btnSimulateScan" type="button">Simulate Scan</button>
     </div>
     <div class="card manual-box" style="margin-top:14px">
@@ -1178,7 +1178,7 @@ input:focus { border-color: var(--tide); }
         <button class="btn btn-ember" id="btnManualScan" type="button">Scan</button>
       </div>
       <div class="scan-toast" id="scanToast" role="status"></div>
-      <p class="hint">Same code always yields the same creature or item. Camera needs HTTPS or localhost. Simulate Scan invents a unique code each tap.</p>
+      <p class="hint" id="manualHint">Same code always yields the same creature or item. Camera needs HTTPS or localhost.</p>
     </div>
   </section>
 
@@ -1316,6 +1316,15 @@ input:focus { border-color: var(--tide); }
 <script>
 (function () {
   'use strict';
+
+  // Production launch: set allowSimulate to false to remove Simulate Scan entirely.
+  const CC_CONFIG = {
+    allowSimulate: true // TODO: false for production
+  };
+
+  function scanFallbackHint() {
+    return CC_CONFIG.allowSimulate ? 'Manual Entry or Simulate Scan' : 'Manual Entry';
+  }
 
   // ========== DATA ==========
   // ========== ROSTER GENERATORS (1000 creatures / 500 items) ==========
@@ -2084,7 +2093,7 @@ input:focus { border-color: var(--tide); }
   $('#btnManualScan').addEventListener('click', () => {
     const v = ($('#manualCode').value || '').trim();
     if (!v) {
-      showScanToast('Enter a code first, or tap Simulate Scan.');
+      showScanToast(CC_CONFIG.allowSimulate ? 'Enter a code first, or tap Simulate Scan.' : 'Enter a code first.');
       return;
     }
     processCode(v);
@@ -2092,9 +2101,22 @@ input:focus { border-color: var(--tide); }
   $('#manualCode').addEventListener('keydown', e => {
     if (e.key === 'Enter') processCode($('#manualCode').value);
   });
-  $('#btnSimulateScan').addEventListener('click', () => {
-    processCode('sim-' + Date.now());
-  });
+  if (CC_CONFIG.allowSimulate) {
+    const simBtn = $('#btnSimulateScan');
+    if (simBtn) {
+      simBtn.addEventListener('click', () => {
+        processCode('sim-' + Date.now());
+      });
+    }
+    const hint = $('#manualHint');
+    if (hint) {
+      hint.textContent = 'Same code always yields the same creature or item. Camera needs HTTPS or localhost. Simulate Scan invents a unique code each tap.';
+    }
+  } else {
+    const row = $('#simulateScanRow');
+    if (row) row.remove();
+    // scrub leftover copy that mentions Simulate
+  }
 
   // ========== CAMERA / ZXING ==========
   let codeReader = null;
@@ -2134,9 +2156,9 @@ input:focus { border-color: var(--tide); }
       $('#btnStartCam').disabled = false;
       $('#btnStopCam').disabled = true;
       const msg = (err && err.message) ? err.message : String(err);
-      setCamStatus('Camera unavailable — use Manual Entry or Simulate Scan. (' + msg.slice(0, 80) + ')');
+      setCamStatus('Camera unavailable — use ' + scanFallbackHint() + '. (' + msg.slice(0, 80) + ')');
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        setCamStatus('No camera API — use Manual Entry or Simulate Scan below.');
+        setCamStatus('No camera API — use ' + scanFallbackHint() + ' below.');
       }
     }
   }
@@ -2156,7 +2178,7 @@ input:focus { border-color: var(--tide); }
     }
     $('#btnStartCam').disabled = false;
     $('#btnStopCam').disabled = true;
-    setCamStatus('Camera stopped. Tap Start Camera to scan barcodes for creatures, or use Manual / Simulate Scan.');
+    setCamStatus('Camera stopped. Tap Start Camera to scan barcodes for creatures, or use ' + scanFallbackHint() + '.');
   }
 
   $('#btnStartCam').addEventListener('click', startCamera);
@@ -2166,10 +2188,10 @@ input:focus { border-color: var(--tide); }
   setCamStatus('Camera is used to scan barcodes for creatures. Tap Start Camera when ready.');
   $('#btnStartCam').disabled = false;
   if (!(location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-    setCamStatus('Camera needs HTTPS or localhost. Manual Entry and Simulate Scan work anytime.');
+    setCamStatus('Camera needs HTTPS or localhost. ' + scanFallbackHint() + ' work anytime.');
   }
   if (storageEphemeral) {
-    setCamStatus('Storage blocked in this preview — progress won’t stick. Open https://garandwolf.github.io/CodeCreatures/ in your browser for saves. Simulate still works here.');
+    setCamStatus('Storage blocked in this preview — progress won’t stick. Open https://garandwolf.github.io/CodeCreatures/ in your browser for saves.' + (CC_CONFIG.allowSimulate ? ' Simulate still works here.' : ''));
     showScanToast('Preview sandbox: saves are temporary. Use GitHub Pages for real progress.');
   }
 

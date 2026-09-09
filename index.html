@@ -1533,10 +1533,12 @@ input:focus { border-color: var(--tide); }
     // ~2/3 creature, ~1/3 item
     const isCreature = roll < 67;
     // rarity tiers from higher bits
+    // Rarity among the rolled kind: common 70%, rare 29%, legendary 1%
+    // => legendary creature ≈ 0.67% of all scans (67% creature * 1%)
     const tier = (h >>> 8) % 100;
     let rarity;
     if (tier < 70) rarity = 'common';
-    else if (tier < 92) rarity = 'rare';
+    else if (tier < 99) rarity = 'rare';
     else rarity = 'legendary';
 
     if (isCreature) {

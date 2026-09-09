@@ -1168,7 +1168,8 @@ input:focus { border-color: var(--tide); }
   'use strict';
 
   // ========== DATA ==========
-  const CREATURES = [
+  // ========== ROSTER GENERATORS (1000 creatures / 500 items) ==========
+  const ORIG_CREATURES = [
     { id: 'sparkpup', name: 'Sparkpup', tribe: 'ember', attack: 12, defense: 8, speed: 14, rarity: 'common', emoji: '🐕‍🦺', flavor: 'A restless ember pup that lights the trail with every bark.' },
     { id: 'cindrax', name: 'Cindrax', tribe: 'ember', attack: 16, defense: 11, speed: 10, rarity: 'common', emoji: '🦎', flavor: 'Scales smolder as it sketches heat-trails through dry brush.' },
     { id: 'flarewyrm', name: 'Flarewyrm', tribe: 'ember', attack: 22, defense: 14, speed: 16, rarity: 'rare', emoji: '🐉', flavor: 'Coils of living fire that write runes in the night sky.' },
@@ -1182,7 +1183,7 @@ input:focus { border-color: var(--tide); }
     { id: 'bloomheart', name: 'Bloomheart', tribe: 'growth', attack: 24, defense: 17, speed: 14, rarity: 'legendary', emoji: '🌺', flavor: 'Petals open to the sun and close around a living core.' }
   ];
 
-  const ITEMS = [
+  const ORIG_ITEMS = [
     { id: 'sparkblade', name: 'Spark Blade', type: 'weapon', rarity: 'common', bonus: 3, emoji: '🗡️' },
     { id: 'tideedge', name: 'Tide Edge', type: 'weapon', rarity: 'common', bonus: 3, emoji: '⚔️' },
     { id: 'thornspear', name: 'Thorn Spear', type: 'weapon', rarity: 'common', bonus: 3, emoji: '🔱' },
@@ -1199,6 +1200,226 @@ input:focus { border-color: var(--tide); }
     { id: 'stormcharm', name: 'Storm Charm', type: 'charm', rarity: 'rare', bonus: 7, emoji: '⚡' },
     { id: 'mythcharm', name: 'Myth Charm', type: 'charm', rarity: 'rare', bonus: 7, emoji: '💫' }
   ];
+
+  function rosterHash(n) {
+    let x = (n + 1) * 2654435761 >>> 0;
+    x ^= x >>> 16;
+    x = Math.imul(x, 2246822519) >>> 0;
+    x ^= x >>> 13;
+    return x >>> 0;
+  }
+
+  function buildCreatures() {
+    const TRIBES = ['ember', 'tide', 'growth'];
+    const EMOJI = {
+      ember: ['🔥', '🦎', '🐉', '🦁', '🐕‍🦺', '☄️', '🔶', '🧨'],
+      tide: ['💧', '🐟', '🐙', '🦑', '🌊', '🐚', '🫧', '🐬'],
+      growth: ['🌱', '🛡️', '🌺', '🍃', '🌳', '🦋', '🍄', '🌾']
+    };
+    const PREFIX = {
+      ember: ['Ash', 'Cinder', 'Ember', 'Flare', 'Glow', 'Heat', 'Kindle', 'Pyre', 'Scorch', 'Spark', 'Blaze', 'Coal', 'Forge', 'Smolder', 'Sol'],
+      tide: ['Aqua', 'Brine', 'Coral', 'Drift', 'Foam', 'Mist', 'Ripple', 'Tide', 'Wave', 'Deep', 'Kelp', 'Pearl', 'Rain', 'Spray', 'Surge'],
+      growth: ['Bloom', 'Briar', 'Fern', 'Grove', 'Leaf', 'Moss', 'Root', 'Seed', 'Thorn', 'Vine', 'Branch', 'Canopy', 'Petal', 'Sprout', 'Willow']
+    };
+    const SUFFIX = {
+      ember: ['pup', 'ling', 'drake', 'fox', 'whelp', 'moth', 'hare', 'wyrm', 'finch', 'toad', 'cat', 'stag', 'owl', 'boar', 'ray'],
+      tide: ['fin', 'scale', 'ray', 'crab', 'otter', 'seal', 'eel', 'shell', 'squall', 'drift', 'bloom', 'wisp', 'lark', 'newt', 'pike'],
+      growth: ['sprout', 'bud', 'hare', 'owl', 'deer', 'fox', 'moth', 'toad', 'wisp', 'sprite', 'finch', 'boar', 'cat', 'drake', 'ling']
+    };
+    const FLAVOR = [
+      'A {adj} {tribe} spirit that {verb} through the wild code.',
+      '{name} {verb} where {tribe} energy gathers.',
+      'Said to {verb} at dusk, leaving {tribe} traces behind.',
+      'A compact {rarity} of the {tribe} tribe, quick to {verb}.',
+      'Born from {tribe} runes, {name} never quite sits still.',
+      'Collectors whisper that {name} can {verb} for hours.'
+    ];
+    const ADJ = ['restless', 'quiet', 'bright', 'stubborn', 'nimble', 'ancient', 'curious', 'fierce'];
+    const VERB = ['dart', 'glow', 'wander', 'pulse', 'hum', 'sketch trails', 'guard paths', 'spark'];
+    const TRIBE_WORD = { ember: 'ember', tide: 'tide', growth: 'growth' };
+
+    const out = ORIG_CREATURES.map(c => Object.assign({}, c));
+    const usedIds = new Set(out.map(c => c.id));
+    const usedNames = new Set(out.map(c => c.name.toLowerCase()));
+
+    // Targets: 1000 total. Tribes 334 / 333 / 333. Rarity 700 / 250 / 50.
+    const tribeNeed = { ember: 334 - 4, tide: 333 - 4, growth: 333 - 3 }; // 330, 329, 330
+    const rareNeed = { common: 700 - 6, rare: 250 - 2, legendary: 50 - 3 }; // 694, 248, 47
+
+    function nextRarity(i) {
+      // Deterministic schedule from index so counts land exactly
+      // Fill in order: assign by global gen index using cumulative quotas
+      return null;
+    }
+
+    // Build a fixed schedule of (tribe, rarity) pairs for the 989 generated entries
+    const schedule = [];
+    const rarities = [];
+    for (let i = 0; i < rareNeed.common; i++) rarities.push('common');
+    for (let i = 0; i < rareNeed.rare; i++) rarities.push('rare');
+    for (let i = 0; i < rareNeed.legendary; i++) rarities.push('legendary');
+    // shuffle rarities deterministically
+    for (let i = rarities.length - 1; i > 0; i--) {
+      const j = rosterHash(9000 + i) % (i + 1);
+      const t = rarities[i]; rarities[i] = rarities[j]; rarities[j] = t;
+    }
+    const tribes = [];
+    for (let i = 0; i < tribeNeed.ember; i++) tribes.push('ember');
+    for (let i = 0; i < tribeNeed.tide; i++) tribes.push('tide');
+    for (let i = 0; i < tribeNeed.growth; i++) tribes.push('growth');
+    for (let i = tribes.length - 1; i > 0; i--) {
+      const j = rosterHash(7000 + i) % (i + 1);
+      const t = tribes[i]; tribes[i] = tribes[j]; tribes[j] = t;
+    }
+    for (let i = 0; i < 989; i++) schedule.push({ tribe: tribes[i], rarity: rarities[i] });
+
+    function statRange(rarity) {
+      if (rarity === 'legendary') return [22, 30];
+      if (rarity === 'rare') return [16, 24];
+      return [8, 18];
+    }
+
+    function makeStat(baseMin, baseMax, h, salt) {
+      const span = baseMax - baseMin;
+      const v = baseMin + ((h >>> salt) % (span + 1));
+      return Math.min(32, v);
+    }
+
+    for (let gi = 0; gi < 989; gi++) {
+      const tribe = schedule[gi].tribe;
+      const rarity = schedule[gi].rarity;
+      const h = rosterHash(gi + 42);
+      const prefs = PREFIX[tribe];
+      const sufs = SUFFIX[tribe];
+      let name = '';
+      let id = '';
+      let attempts = 0;
+      while (attempts < 64) {
+        const p = prefs[(h + attempts * 17) % prefs.length];
+        const s = sufs[((h >>> 8) + attempts * 13) % sufs.length];
+        // capitalize compose
+        name = p + s.charAt(0).toUpperCase() + s.slice(1);
+        // sometimes insert mid syllable via hash
+        if (((h >>> 4) + attempts) % 5 === 0) {
+          const mid = prefs[((h >>> 12) + attempts) % prefs.length].slice(0, 3).toLowerCase();
+          name = p + mid + s.charAt(0).toUpperCase() + s.slice(1);
+        }
+        id = tribe + '-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '') + '-c' + String(gi).padStart(4, '0');
+        if (!usedIds.has(id) && !usedNames.has(name.toLowerCase())) break;
+        attempts++;
+        name = p + s + String.fromCharCode(97 + (attempts % 26));
+        id = tribe + '-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '') + '-c' + String(gi).padStart(4, '0');
+        if (!usedIds.has(id) && !usedNames.has(name.toLowerCase())) break;
+      }
+      if (usedIds.has(id) || usedNames.has(name.toLowerCase())) {
+        name = prefs[gi % prefs.length] + 'ling' + gi;
+        id = tribe + '-gen' + String(gi).padStart(4, '0');
+      }
+      usedIds.add(id);
+      usedNames.add(name.toLowerCase());
+
+      const [mn, mx] = statRange(rarity);
+      const attack = makeStat(mn, mx, h, 0);
+      const defense = makeStat(mn, mx, h, 5);
+      const speed = makeStat(mn, mx, h, 10);
+      const emoji = EMOJI[tribe][h % EMOJI[tribe].length];
+      const tmpl = FLAVOR[h % FLAVOR.length];
+      const flavor = tmpl
+        .replace(/\{name\}/g, name)
+        .replace(/\{tribe\}/g, TRIBE_WORD[tribe])
+        .replace(/\{adj\}/g, ADJ[h % ADJ.length])
+        .replace(/\{verb\}/g, VERB[(h >>> 3) % VERB.length])
+        .replace(/\{rarity\}/g, rarity);
+      out.push({ id, name, tribe, attack, defense, speed, rarity, emoji, flavor });
+    }
+    return out;
+  }
+
+  function buildItems() {
+    const TYPES = ['weapon', 'armor', 'charm'];
+    const EMOJI = {
+      weapon: ['🗡️', '⚔️', '🔱', '🏹', '🪓', '🔪', '⚒️', '🗡️'],
+      armor: ['🛡️', '🪵', '🧱', '🪸', '🪖', '🪞', '🧿', '🧥'],
+      charm: ['🎐', '✨', '🍀', '⚡', '💫', '🔮', '🧿', '🎖️']
+    };
+    const NAME_A = {
+      weapon: ['Spark', 'Tide', 'Thorn', 'Ember', 'Abyss', 'Frost', 'Solar', 'Verdant', 'Storm', 'Rune', 'Iron', 'Crystal', 'Shadow', 'Bright', 'Wild'],
+      armor: ['Shell', 'Bark', 'Ash', 'Tide', 'Iron', 'Moss', 'Scale', 'Leaf', 'Coral', 'Stone', 'Silk', 'Bone', 'Glass', 'Root', 'Sky'],
+      charm: ['Breeze', 'Ember', 'Root', 'Storm', 'Myth', 'Dawn', 'Dusk', 'Tide', 'Grove', 'Spark', 'Echo', 'Lumen', 'Fern', 'Wave', 'Coal']
+    };
+    const NAME_B = {
+      weapon: ['Blade', 'Edge', 'Spear', 'Fang', 'Cleaver', 'Saber', 'Lance', 'Dart', 'Hammer', 'Needle', 'Cutter', 'Pike', 'Arc', 'Spike', 'Brand'],
+      armor: ['Plate', 'Mail', 'Guard', 'Shell', 'Bloom', 'Aegis', 'Vest', 'Mantle', 'Ward', 'Cuirass', 'Wrap', 'Barrier', 'Hide', 'Shield', 'Coat'],
+      charm: ['Charm', 'Token', 'Sigil', 'Badge', 'Orb', 'Relic', 'Talisman', 'Mark', 'Seal', 'Trinket', 'Gem', 'Loop', 'Band', 'Shard', 'Idol']
+    };
+
+    const out = ORIG_ITEMS.map(i => Object.assign({}, i));
+    const usedIds = new Set(out.map(i => i.id));
+    const usedNames = new Set(out.map(i => i.name.toLowerCase()));
+
+    // 500 total: types ~167 each (orig 5 each → gen 162/162/161)
+    // rarity 350/125/25 (orig common 9, rare 6, leg 0 → gen 341/119/25)
+    const typeNeed = { weapon: 162, armor: 162, charm: 161 };
+    const rareNeed = { common: 341, rare: 119, legendary: 25 };
+
+    const rarities = [];
+    for (let i = 0; i < rareNeed.common; i++) rarities.push('common');
+    for (let i = 0; i < rareNeed.rare; i++) rarities.push('rare');
+    for (let i = 0; i < rareNeed.legendary; i++) rarities.push('legendary');
+    for (let i = rarities.length - 1; i > 0; i--) {
+      const j = rosterHash(5000 + i) % (i + 1);
+      const t = rarities[i]; rarities[i] = rarities[j]; rarities[j] = t;
+    }
+    const types = [];
+    for (let i = 0; i < typeNeed.weapon; i++) types.push('weapon');
+    for (let i = 0; i < typeNeed.armor; i++) types.push('armor');
+    for (let i = 0; i < typeNeed.charm; i++) types.push('charm');
+    for (let i = types.length - 1; i > 0; i--) {
+      const j = rosterHash(3000 + i) % (i + 1);
+      const t = types[i]; types[i] = types[j]; types[j] = t;
+    }
+
+    function bonusFor(rarity, h) {
+      if (rarity === 'legendary') return 9 + (h % 4); // 9-12
+      if (rarity === 'rare') return 5 + (h % 4); // 5-8
+      return 2 + (h % 3); // 2-4
+    }
+
+    for (let gi = 0; gi < 485; gi++) {
+      const type = types[gi];
+      const rarity = rarities[gi];
+      const h = rosterHash(gi + 999);
+      const a = NAME_A[type];
+      const b = NAME_B[type];
+      let name = '';
+      let id = '';
+      let attempts = 0;
+      while (attempts < 64) {
+        const na = a[(h + attempts * 19) % a.length];
+        const nb = b[((h >>> 7) + attempts * 11) % b.length];
+        name = na + ' ' + nb;
+        id = (na + nb).toLowerCase().replace(/[^a-z0-9]+/g, '') + '-i' + String(gi).padStart(4, '0');
+        if (!usedIds.has(id) && !usedNames.has(name.toLowerCase())) break;
+        attempts++;
+        name = na + ' ' + nb + ' ' + String.fromCharCode(65 + (attempts % 26));
+        id = (na + nb + String(attempts)).toLowerCase().replace(/[^a-z0-9]+/g, '') + '-i' + String(gi).padStart(4, '0');
+        if (!usedIds.has(id) && !usedNames.has(name.toLowerCase())) break;
+      }
+      if (usedIds.has(id) || usedNames.has(name.toLowerCase())) {
+        name = a[gi % a.length] + ' ' + b[gi % b.length] + ' ' + gi;
+        id = type + '-gen' + String(gi).padStart(4, '0');
+      }
+      usedIds.add(id);
+      usedNames.add(name.toLowerCase());
+      const emoji = EMOJI[type][h % EMOJI[type].length];
+      const bonus = bonusFor(rarity, h);
+      out.push({ id, name, type, rarity, bonus, emoji });
+    }
+    return out;
+  }
+
+  const CREATURES = buildCreatures();
+  const ITEMS = buildItems();
 
   const TYPE_ADV = { ember: 'tide', tide: 'growth', growth: 'ember' };
   const SAVE_KEY = 'codecreatures-save';
@@ -1335,8 +1556,12 @@ input:focus { border-color: var(--tide); }
       }
       return { kind: 'creature', data: pick };
     } else {
-      // Rare items only on legendary pull path
+      // Legendary tier: prefer legendary items when pool non-empty, else rare
       if (rarity === 'legendary') {
+        const legItems = ITEMS.filter(i => i.rarity === 'legendary');
+        if (legItems.length) {
+          return { kind: 'item', data: itemByRarity('legendary', h >>> 16) };
+        }
         return { kind: 'item', data: itemByRarity('rare', h >>> 16) };
       }
       return { kind: 'item', data: itemByRarity('common', h >>> 16) };

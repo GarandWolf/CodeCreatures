@@ -1,0 +1,1939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0d1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>CodeCreatures</title>
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js" defer></script>
+<style>
+:root {
+  --bg: #0d1117;
+  --bg2: #161b22;
+  --bg3: #21262d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --ember: #ff6b35;
+  --ember-dim: #c4451a;
+  --tide: #2dd4bf;
+  --tide-dim: #0d9488;
+  --growth: #4ade80;
+  --growth-dim: #16a34a;
+  --rare: #a78bfa;
+  --legendary: #fbbf24;
+  --danger: #f85149;
+  --ok: #3fb950;
+  --nav-h: 64px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --radius: 14px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  position: relative;
+  overflow: hidden;
+}
+button {
+  font: inherit;
+  color: inherit;
+  border: none;
+  cursor: pointer;
+  background: none;
+  touch-action: manipulation;
+}
+input, select {
+  font: inherit;
+  color: inherit;
+  background: var(--bg3);
+  border: 1px solid var(--bg3);
+  border-radius: 10px;
+  padding: 12px 14px;
+  width: 100%;
+  outline: none;
+}
+input:focus { border-color: var(--tide); }
+
+.app-header {
+  flex-shrink: 0;
+  padding: 12px 16px 8px;
+  background: linear-gradient(180deg, var(--bg2), var(--bg));
+  border-bottom: 1px solid #30363d;
+  text-align: center;
+  z-index: 10;
+}
+.app-header h1 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: linear-gradient(90deg, var(--ember), var(--tide), var(--growth));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.app-header .sub {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.screens {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+.screen {
+  display: none;
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 14px calc(var(--nav-h) + var(--safe-b) + 28px);
+}
+.screen.active { display: block; }
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  height: calc(var(--nav-h) + var(--safe-b));
+  padding-bottom: var(--safe-b);
+  background: var(--bg2);
+  border-top: 1px solid #30363d;
+  display: flex;
+  z-index: 100;
+}
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-weight: 600;
+  transition: color 0.15s;
+}
+.nav-btn .ico { font-size: 1.35rem; line-height: 1; }
+.nav-btn.active { color: var(--tide); }
+.nav-btn.active .ico { filter: drop-shadow(0 0 6px rgba(45,212,191,0.5)); }
+
+.card {
+  background: var(--bg2);
+  border: 1px solid #30363d;
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.card h2 {
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  background: var(--bg3);
+  border: 1px solid #30363d;
+  transition: transform 0.1s, background 0.15s;
+  min-height: 44px;
+  width: 100%;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: linear-gradient(135deg, var(--tide-dim), var(--tide));
+  border: none;
+  color: #042f2e;
+}
+.btn-ember {
+  background: linear-gradient(135deg, var(--ember-dim), var(--ember));
+  border: none;
+  color: #1a0a00;
+}
+.btn-tide {
+  background: linear-gradient(135deg, var(--tide), #0ea5e9);
+  color: #042f2e;
+  font-weight: 800;
+}
+.btn-growth {
+  background: linear-gradient(135deg, var(--growth-dim), var(--growth));
+  border: none;
+  color: #052e16;
+}
+.btn-danger {
+  background: linear-gradient(135deg, #9b1c1c, var(--danger));
+  border: none;
+  color: #fff;
+}
+.btn-ghost {
+  background: transparent;
+  border: 1px dashed #30363d;
+  color: var(--muted);
+}
+.btn:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.btn-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.btn-row .btn { flex: 1; }
+
+/* Scan */
+.camera-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/4;
+  max-height: 32vh;
+  background: #000;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 2px solid #30363d;
+}
+.camera-wrap video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.scan-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.scan-frame {
+  width: 70%;
+  aspect-ratio: 1;
+  border: 2px solid rgba(45,212,191,0.7);
+  border-radius: 16px;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.35);
+  position: relative;
+}
+.scan-frame::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  height: 2px;
+  background: var(--tide);
+  top: 0;
+  animation: scanline 2s ease-in-out infinite;
+  box-shadow: 0 0 12px var(--tide);
+}
+@keyframes scanline {
+  0%, 100% { top: 8%; opacity: 0.4; }
+  50% { top: 88%; opacity: 1; }
+}
+.camera-status {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 8px 0;
+  min-height: 1.2em;
+}
+
+.scan-toast {
+  display: none;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(248, 81, 73, 0.15);
+  border: 1px solid rgba(248, 81, 73, 0.45);
+  color: #ffb4af;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+.scan-toast.show { display: block; }
+.manual-box { margin-top: 8px; }
+.manual-box label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+/* Pull reveal */
+.pull-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  max-width: 480px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+}
+.pull-overlay.show { display: flex; }
+.pull-card {
+  background: var(--bg2);
+  border-radius: 20px;
+  padding: 28px 20px;
+  text-align: center;
+  width: 100%;
+  max-width: 320px;
+  border: 2px solid #30363d;
+  animation: pullIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes pullIn {
+  0% { transform: scale(0.3) rotate(-8deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+.pull-card.ember { border-color: var(--ember); box-shadow: 0 0 40px rgba(255,107,53,0.35); }
+.pull-card.tide { border-color: var(--tide); box-shadow: 0 0 40px rgba(45,212,191,0.35); }
+.pull-card.growth { border-color: var(--growth); box-shadow: 0 0 40px rgba(74,222,128,0.35); }
+.pull-card.item { border-color: var(--rare); box-shadow: 0 0 40px rgba(167,139,250,0.3); }
+.pull-emoji {
+  font-size: 4.5rem;
+  line-height: 1;
+  margin: 8px 0 12px;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+}
+.pull-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.pull-meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.badge-common { background: #30363d; color: var(--muted); }
+.badge-rare { background: rgba(167,139,250,0.2); color: var(--rare); }
+.badge-legendary { background: rgba(251,191,36,0.2); color: var(--legendary); }
+.badge-ember { background: rgba(255,107,53,0.2); color: var(--ember); }
+.badge-tide { background: rgba(45,212,191,0.2); color: var(--tide); }
+.badge-growth { background: rgba(74,222,128,0.2); color: var(--growth); }
+.pull-stats {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 12px 0 16px;
+  font-size: 0.8rem;
+}
+.pull-stats span { color: var(--muted); }
+.pull-stats strong { color: var(--text); }
+.pull-note {
+  font-size: 0.8rem;
+  margin-bottom: 14px;
+  min-height: 1.2em;
+}
+.pull-note.new { color: var(--ok); }
+.pull-note.owned { color: var(--legendary); }
+.pull-note.item { color: var(--rare); }
+
+/* Collection */
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  background: var(--bg2);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid #30363d;
+}
+.tab {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.tab.active {
+  background: var(--bg3);
+  color: var(--text);
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+/* Trading-card collection tiles */
+.creature-tile, .item-tile {
+  --card-frame: #30363d;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  aspect-ratio: 5 / 7;
+  background: linear-gradient(165deg, #1a1f27 0%, var(--bg2) 55%, #12161c 100%);
+  border: 2px solid var(--card-frame);
+  border-radius: 14px;
+  padding: 7px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.15s;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+}
+.creature-tile:active, .item-tile:active { transform: scale(0.97); }
+.creature-tile.ember { --card-frame: var(--ember); border-color: rgba(255,107,53,0.75); }
+.creature-tile.tide { --card-frame: var(--tide); border-color: rgba(45,212,191,0.75); }
+.creature-tile.growth { --card-frame: var(--growth); border-color: rgba(74,222,128,0.75); }
+.item-tile { --card-frame: var(--rare); border-color: rgba(167,139,250,0.65); }
+.creature-tile.rarity-common, .item-tile.rarity-common {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.creature-tile.rarity-rare, .item-tile.rarity-rare {
+  box-shadow: 0 0 0 1px rgba(167,139,250,0.35) inset, 0 0 18px rgba(167,139,250,0.28), 0 6px 16px rgba(0,0,0,0.35);
+}
+.creature-tile.rarity-legendary, .item-tile.rarity-legendary {
+  border-color: var(--legendary);
+  box-shadow: 0 0 0 1px rgba(255,215,100,0.45) inset, 0 0 22px rgba(255,200,60,0.35), 0 8px 20px rgba(0,0,0,0.45);
+}
+.creature-tile.rarity-legendary::after, .item-tile.rarity-legendary::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.22) 48%, transparent 62%);
+  transform: translateX(-120%);
+  animation: cardShine 3.2s ease-in-out infinite;
+}
+@keyframes cardShine {
+  0%, 55% { transform: translateX(-120%); }
+  75% { transform: translateX(120%); }
+  100% { transform: translateX(120%); }
+}
+.card-art {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(255,255,255,0.06), transparent 60%),
+    linear-gradient(180deg, #0a0d12 0%, #151b24 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: inset 0 0 24px rgba(0,0,0,0.45);
+}
+.creature-tile.ember .card-art { box-shadow: inset 0 0 28px rgba(255,107,53,0.12); }
+.creature-tile.tide .card-art { box-shadow: inset 0 0 28px rgba(45,212,191,0.12); }
+.creature-tile.growth .card-art { box-shadow: inset 0 0 28px rgba(74,222,128,0.12); }
+.item-tile .card-art { box-shadow: inset 0 0 28px rgba(167,139,250,0.14); }
+.card-art-emoji {
+  font-size: clamp(2.4rem, 12vw, 3.2rem);
+  line-height: 1;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.45));
+}
+.card-banner {
+  font-weight: 800;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  padding: 5px 6px;
+  margin-bottom: 5px;
+  border-radius: 7px;
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(255,255,255,0.08);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  margin-bottom: 6px;
+  min-height: 1.2em;
+}
+.card-stats {
+  display: flex;
+  gap: 4px;
+  justify-content: space-between;
+  margin-top: auto;
+}
+.card-stat {
+  flex: 1;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 4px 2px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.07);
+  color: var(--muted);
+  line-height: 1.15;
+}
+.card-stat strong {
+  display: block;
+  color: var(--text);
+  font-size: 0.72rem;
+}
+.card-bonus {
+  margin-top: auto;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(167,139,250,0.18);
+  border: 1px solid rgba(167,139,250,0.4);
+  color: #ddd6fe;
+}
+.equip-dot {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--legendary);
+  box-shadow: 0 0 8px var(--legendary);
+}
+.equip-chip {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 3px 5px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.65);
+  border: 1px solid rgba(255,215,100,0.45);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.tile-emoji { font-size: 2.4rem; line-height: 1; margin-bottom: 6px; }
+.tile-name { font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; }
+.tile-meta { font-size: 0.7rem; color: var(--muted); }
+.creature-tile.selected {
+  outline: 2px solid var(--tide);
+  outline-offset: 1px;
+}
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.empty-state .big { font-size: 2.5rem; margin-bottom: 8px; }
+
+/* Detail modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 150;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  max-width: 480px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+}
+.modal.show { display: flex; }
+.modal-sheet {
+  background: var(--bg2);
+  border-radius: 20px 20px 0 0;
+  padding: 20px 16px calc(20px + var(--safe-b));
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  border-top: 1px solid #30363d;
+  animation: sheetUp 0.25s ease-out;
+}
+@keyframes sheetUp {
+  from { transform: translateY(40%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.modal-sheet .handle {
+  width: 40px;
+  height: 4px;
+  background: #30363d;
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+.detail-head {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.detail-emoji { font-size: 3.5rem; }
+.detail-info h3 { font-size: 1.2rem; margin-bottom: 4px; }
+.stat-bars { margin: 12px 0; }
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+.stat-row .label { width: 36px; color: var(--muted); font-weight: 600; }
+.stat-row .val { width: 28px; text-align: right; font-weight: 700; }
+.bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--bg3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+.bar-fill.atk { background: var(--ember); }
+.bar-fill.def { background: var(--tide); }
+.bar-fill.spd { background: var(--growth); }
+.equip-select {
+  margin-top: 10px;
+}
+.equip-select label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+/* Team */
+.team-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.team-slot {
+  background: var(--bg2);
+  border: 2px dashed #30363d;
+  border-radius: var(--radius);
+  padding: 14px;
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.team-slot.filled {
+  border-style: solid;
+  border-color: #30363d;
+}
+.team-slot.ember { border-color: rgba(255,107,53,0.5); }
+.team-slot.tide { border-color: rgba(45,212,191,0.5); }
+.team-slot.growth { border-color: rgba(74,222,128,0.5); }
+.team-slot .slot-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.team-slot .slot-emoji { font-size: 2rem; }
+.team-slot .slot-info { flex: 1; min-width: 0; }
+.team-slot .slot-name { font-weight: 700; font-size: 0.95rem; }
+.team-slot .slot-meta { font-size: 0.75rem; color: var(--muted); }
+.team-slot .slot-empty { color: var(--muted); font-size: 0.85rem; }
+.picker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+.picker-tile {
+  background: var(--bg3);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 10px 6px;
+  text-align: center;
+  cursor: pointer;
+}
+.picker-tile.in-team { border-color: var(--tide); opacity: 0.5; }
+.picker-tile .pe { font-size: 1.8rem; }
+.picker-tile .pn { font-size: 0.7rem; font-weight: 600; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Battle */
+.battle-arena {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.fighter {
+  background: var(--bg2);
+  border: 1px solid #30363d;
+  border-radius: var(--radius);
+  padding: 14px;
+  position: relative;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.fighter.hit {
+  animation: hitShake 0.35s ease;
+}
+@keyframes hitShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+.fighter.attacking {
+  animation: attackLunge 0.3s ease;
+}
+@keyframes attackLunge {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px) scale(1.03); }
+}
+.fighter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.fighter-emoji { font-size: 2.8rem; }
+.fighter-info { flex: 1; min-width: 0; }
+.fighter-name { font-weight: 800; font-size: 1rem; }
+.fighter-tribe { font-size: 0.7rem; margin-top: 2px; }
+.hp-wrap { margin-top: 8px; }
+.hp-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.hp-track {
+  height: 12px;
+  background: var(--bg3);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #30363d;
+}
+.hp-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--ok), #56d364);
+  transition: width 0.4s ease, background 0.3s;
+}
+.hp-fill.low { background: linear-gradient(90deg, #d29922, var(--legendary)); }
+.hp-fill.critical { background: linear-gradient(90deg, #da3633, var(--danger)); }
+.vs-badge {
+  text-align: center;
+  font-weight: 900;
+  font-size: 1.1rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+}
+.battle-log {
+  background: var(--bg);
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  max-height: 120px;
+  overflow-y: auto;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.battle-log .log-hit { color: var(--ember); }
+.battle-log .log-ko { color: var(--danger); font-weight: 700; }
+.battle-log .log-win { color: var(--ok); font-weight: 800; }
+.bench {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.bench-chip {
+  font-size: 0.7rem;
+  padding: 4px 8px;
+  background: var(--bg3);
+  border-radius: 8px;
+  opacity: 0.5;
+}
+.bench-chip.alive { opacity: 1; }
+.bench-chip.active {
+  outline: 1px solid var(--tide);
+  opacity: 1;
+}
+.winner-banner {
+  text-align: center;
+  padding: 20px;
+  font-size: 1.3rem;
+  font-weight: 900;
+  border-radius: var(--radius);
+  margin-top: 8px;
+}
+.winner-banner.win {
+  background: rgba(63,185,80,0.15);
+  color: var(--ok);
+  border: 1px solid var(--ok);
+}
+.winner-banner.lose {
+  background: rgba(248,81,73,0.15);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-top: 8px;
+}
+.qty-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  background: var(--rare);
+  color: #1a1028;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 3px 7px;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <h1>CodeCreatures</h1>
+  <div class="sub">Scan codes · Collect · Battle</div>
+</header>
+
+<main class="screens">
+  <!-- SCAN -->
+  <section id="screen-scan" class="screen active">
+    <div class="camera-wrap" id="cameraWrap">
+      <video id="scanVideo" playsinline muted></video>
+      <div class="scan-overlay"><div class="scan-frame"></div></div>
+    </div>
+    <div class="camera-status" id="cameraStatus">Camera is used to scan barcodes for creatures. Tap Start Camera when ready.</div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnStartCam" type="button">Start Camera</button>
+      <button class="btn btn-ghost" id="btnStopCam" type="button" disabled>Stop</button>
+      <button class="btn btn-tide" id="btnSimulateScan" type="button">Simulate Scan</button>
+    </div>
+    <div class="card manual-box" style="margin-top:14px">
+      <h2>Manual Code Entry</h2>
+      <label for="manualCode">Enter any UPC / EAN / QR text</label>
+      <input id="manualCode" type="text" placeholder="e.g. 012345678905" autocomplete="off" autocapitalize="off">
+      <div class="btn-row">
+        <button class="btn btn-ember" id="btnManualScan" type="button">Scan</button>
+      </div>
+      <div class="scan-toast" id="scanToast" role="status"></div>
+      <p class="hint">Same code always yields the same creature or item. Camera needs HTTPS or localhost. Simulate Scan invents a unique code each tap.</p>
+    </div>
+  </section>
+
+  <!-- COLLECTION -->
+  <section id="screen-collection" class="screen">
+    <div class="tabs">
+      <button class="tab active" data-ctab="creatures" type="button">Creatures</button>
+      <button class="tab" data-ctab="items" type="button">Items</button>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <h2>Save Data</h2>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnExportSave" type="button">Export Save</button>
+        <button class="btn btn-ghost" id="btnImportSave" type="button">Import Save</button>
+      </div>
+      <input id="importFile" type="file" accept="application/json,.json,text/plain" style="display:none">
+      <label for="importPaste" style="display:block;margin-top:10px">Or paste save JSON</label>
+      <textarea id="importPaste" rows="3" placeholder='{"creatures":[],"items":{},...}' style="width:100%;margin-top:6px;border-radius:10px;border:1px solid var(--bg3);background:var(--bg);color:var(--text);padding:8px;font-family:ui-monospace,monospace;font-size:0.75rem;resize:vertical"></textarea>
+      <button class="btn btn-ember" id="btnImportPaste" type="button" style="margin-top:8px">Import Pasted JSON</button>
+      <div class="scan-toast" id="saveToast" role="status" style="margin-top:8px"></div>
+    </div>
+    <div id="col-creatures"></div>
+    <div id="col-items" style="display:none"></div>
+  </section>
+
+  <!-- TEAM -->
+  <section id="screen-team" class="screen">
+    <div class="card">
+      <h2>Your Team (pick 3)</h2>
+      <div class="team-slots" id="teamSlots"></div>
+      <p class="hint">Tap a slot, then choose a creature below. Team is saved automatically.</p>
+    </div>
+    <div class="card">
+      <h2>Owned Creatures</h2>
+      <div class="picker-grid" id="teamPicker"></div>
+    </div>
+  </section>
+
+  <!-- BATTLE -->
+  <section id="screen-battle" class="screen">
+    <div class="card">
+      <h2>Battle Arena</h2>
+      <p class="hint" style="margin-top:0;margin-bottom:12px">Auto-battle your team of 3 vs a random enemy squad. Speed decides who strikes first.</p>
+      <button class="btn btn-ember" id="btnStartBattle" type="button">Start Battle</button>
+    </div>
+    <div id="battleArea" style="display:none">
+      <div class="battle-arena">
+        <div>
+          <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px;font-weight:700">YOU</div>
+          <div class="fighter" id="playerFighter"></div>
+          <div class="bench" id="playerBench"></div>
+        </div>
+        <div class="vs-badge">VS</div>
+        <div>
+          <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px;font-weight:700">ENEMY</div>
+          <div class="fighter" id="enemyFighter"></div>
+          <div class="bench" id="enemyBench"></div>
+        </div>
+        <div class="battle-log" id="battleLog"></div>
+        <div id="winnerBanner"></div>
+        <button class="btn btn-primary" id="btnBattleAgain" type="button" style="display:none;margin-top:8px">Battle Again</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-screen="scan" type="button"><span class="ico">📷</span>Scan</button>
+  <button class="nav-btn" data-screen="collection" type="button"><span class="ico">📦</span>Collection</button>
+  <button class="nav-btn" data-screen="team" type="button"><span class="ico">⚔️</span>Team</button>
+  <button class="nav-btn" data-screen="battle" type="button"><span class="ico">🏟️</span>Battle</button>
+</nav>
+
+<!-- Pull reveal -->
+<div class="pull-overlay" id="pullOverlay">
+  <div class="pull-card" id="pullCard">
+    <div class="pull-emoji" id="pullEmoji">❓</div>
+    <div class="pull-name" id="pullName">—</div>
+    <div class="pull-meta" id="pullMeta"></div>
+    <div class="pull-stats" id="pullStats"></div>
+    <div class="pull-note" id="pullNote"></div>
+    <button class="btn btn-primary" id="btnPullClose" type="button">Got it!</button>
+  </div>
+</div>
+
+<!-- Detail modal -->
+<div class="modal" id="detailModal">
+  <div class="modal-sheet" id="detailSheet">
+    <div class="handle"></div>
+    <div id="detailContent"></div>
+    <button class="btn btn-ghost" id="btnDetailClose" type="button" style="margin-top:12px">Close</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ========== DATA ==========
+  const CREATURES = [
+    { id: 'sparkpup', name: 'Sparkpup', tribe: 'ember', attack: 12, defense: 8, speed: 14, rarity: 'common', emoji: '🐕‍🦺' },
+    { id: 'cindrax', name: 'Cindrax', tribe: 'ember', attack: 16, defense: 11, speed: 10, rarity: 'common', emoji: '🦎' },
+    { id: 'flarewyrm', name: 'Flarewyrm', tribe: 'ember', attack: 22, defense: 14, speed: 16, rarity: 'rare', emoji: '🐉' },
+    { id: 'ashking', name: 'Ashking', tribe: 'ember', attack: 28, defense: 20, speed: 12, rarity: 'legendary', emoji: '🦁' },
+    { id: 'droplet', name: 'Droplet', tribe: 'tide', attack: 10, defense: 10, speed: 16, rarity: 'common', emoji: '💧' },
+    { id: 'ripscale', name: 'Ripscale', tribe: 'tide', attack: 15, defense: 13, speed: 11, rarity: 'common', emoji: '🐟' },
+    { id: 'tidecaller', name: 'Tidecaller', tribe: 'tide', attack: 20, defense: 16, speed: 15, rarity: 'rare', emoji: '🐙' },
+    { id: 'krakensoul', name: 'Krakensoul', tribe: 'tide', attack: 26, defense: 21, speed: 13, rarity: 'legendary', emoji: '🦑' },
+    { id: 'sproutling', name: 'Sproutling', tribe: 'growth', attack: 11, defense: 12, speed: 13, rarity: 'common', emoji: '🌱' },
+    { id: 'vineguard', name: 'Vineguard', tribe: 'growth', attack: 14, defense: 18, speed: 8, rarity: 'common', emoji: '🛡️' },
+    { id: 'bloomheart', name: 'Bloomheart', tribe: 'growth', attack: 24, defense: 17, speed: 14, rarity: 'legendary', emoji: '🌺' }
+  ];
+
+  const ITEMS = [
+    { id: 'sparkblade', name: 'Spark Blade', type: 'weapon', rarity: 'common', bonus: 3, emoji: '🗡️' },
+    { id: 'tideedge', name: 'Tide Edge', type: 'weapon', rarity: 'common', bonus: 3, emoji: '⚔️' },
+    { id: 'thornspear', name: 'Thorn Spear', type: 'weapon', rarity: 'common', bonus: 3, emoji: '🔱' },
+    { id: 'emberfang', name: 'Ember Fang', type: 'weapon', rarity: 'rare', bonus: 7, emoji: '🔥' },
+    { id: 'abysscleaver', name: 'Abyss Cleaver', type: 'weapon', rarity: 'rare', bonus: 7, emoji: '🌊' },
+    { id: 'shellplate', name: 'Shell Plate', type: 'armor', rarity: 'common', bonus: 3, emoji: '🛡️' },
+    { id: 'barkmail', name: 'Bark Mail', type: 'armor', rarity: 'common', bonus: 3, emoji: '🪵' },
+    { id: 'ashguard', name: 'Ash Guard', type: 'armor', rarity: 'common', bonus: 3, emoji: '🧱' },
+    { id: 'tidemail', name: 'Tide Mail', type: 'armor', rarity: 'rare', bonus: 7, emoji: '🪸' },
+    { id: 'ironbloom', name: 'Ironbloom', type: 'armor', rarity: 'rare', bonus: 7, emoji: '🌹' },
+    { id: 'breezecharm', name: 'Breeze Charm', type: 'charm', rarity: 'common', bonus: 3, emoji: '🎐' },
+    { id: 'embercharm', name: 'Ember Charm', type: 'charm', rarity: 'common', bonus: 3, emoji: '✨' },
+    { id: 'rootcharm', name: 'Root Charm', type: 'charm', rarity: 'common', bonus: 3, emoji: '🍀' },
+    { id: 'stormcharm', name: 'Storm Charm', type: 'charm', rarity: 'rare', bonus: 7, emoji: '⚡' },
+    { id: 'mythcharm', name: 'Myth Charm', type: 'charm', rarity: 'rare', bonus: 7, emoji: '💫' }
+  ];
+
+  const TYPE_ADV = { ember: 'tide', tide: 'growth', growth: 'ember' };
+  const SAVE_KEY = 'codecreatures-save';
+  const TRIBE_COLOR = { ember: 'ember', tide: 'tide', growth: 'growth' };
+
+  // ========== SAVE ==========
+  function defaultSave() {
+    return {
+      creatures: [],
+      items: {},
+      equipment: {},
+      team: [null, null, null],
+      scanLog: {}
+    };
+  }
+
+  function loadSave() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return defaultSave();
+      const data = JSON.parse(raw);
+      return {
+        creatures: Array.isArray(data.creatures) ? data.creatures : [],
+        items: data.items && typeof data.items === 'object' ? data.items : {},
+        equipment: data.equipment && typeof data.equipment === 'object' ? data.equipment : {},
+        team: Array.isArray(data.team) && data.team.length === 3 ? data.team : [null, null, null],
+        scanLog: data.scanLog && typeof data.scanLog === 'object' ? data.scanLog : {}
+      };
+    } catch (e) {
+      return defaultSave();
+    }
+  }
+
+  function persist() {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+  }
+
+  let save = loadSave();
+
+  // ========== HASH / PULL ==========
+  function fnv1a(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
+    }
+    return h >>> 0;
+  }
+
+  function creatureByRarity(rarity, hash) {
+    const pool = CREATURES.filter(c => c.rarity === rarity);
+    if (!pool.length) return CREATURES[hash % CREATURES.length];
+    return pool[hash % pool.length];
+  }
+
+  function itemByRarity(rarity, hash) {
+    const pool = ITEMS.filter(i => i.rarity === rarity);
+    if (!pool.length) return ITEMS[hash % ITEMS.length];
+    return pool[hash % pool.length];
+  }
+
+  function pullFromCode(code) {
+    const h = fnv1a(String(code).trim());
+    const roll = h % 100;
+    // ~2/3 creature, ~1/3 item
+    const isCreature = roll < 67;
+    // rarity tiers from higher bits
+    const tier = (h >>> 8) % 100;
+    let rarity;
+    if (tier < 70) rarity = 'common';
+    else if (tier < 92) rarity = 'rare';
+    else rarity = 'legendary';
+
+    if (isCreature) {
+      // legendary creatures only on legendary tier; map legendary item-path rare creatures ok
+      const c = creatureByRarity(rarity === 'legendary' ? 'legendary' : (rarity === 'rare' ? 'rare' : 'common'), h >>> 16);
+      // if legendary tier but no matching creature rarity for common roll path — already handled
+      // Bloomheart is legendary; ensure legendary tier can pick legendaries
+      let pick = c;
+      if (rarity === 'legendary') {
+        const legends = CREATURES.filter(x => x.rarity === 'legendary');
+        pick = legends[(h >>> 16) % legends.length];
+      } else if (rarity === 'rare') {
+        const rares = CREATURES.filter(x => x.rarity === 'rare');
+        pick = rares.length ? rares[(h >>> 16) % rares.length] : creatureByRarity('common', h >>> 16);
+      } else {
+        pick = creatureByRarity('common', h >>> 16);
+      }
+      return { kind: 'creature', data: pick };
+    } else {
+      // Rare items only on legendary pull path
+      if (rarity === 'legendary') {
+        return { kind: 'item', data: itemByRarity('rare', h >>> 16) };
+      }
+      return { kind: 'item', data: itemByRarity('common', h >>> 16) };
+    }
+  }
+
+  function applyPull(result) {
+    if (result.kind === 'creature') {
+      const id = result.data.id;
+      const already = save.creatures.includes(id);
+      if (!already) {
+        save.creatures.push(id);
+        persist();
+      }
+      return { already, qty: 1 };
+    } else {
+      const id = result.data.id;
+      save.items[id] = (save.items[id] || 0) + 1;
+      persist();
+      return { already: false, qty: save.items[id] };
+    }
+  }
+
+  // ========== STATS WITH ITEMS ==========
+  function getEquippedItem(creatureId) {
+    const itemId = save.equipment[creatureId];
+    if (!itemId) return null;
+    return ITEMS.find(i => i.id === itemId) || null;
+  }
+
+  function effectiveStats(creature) {
+    const item = getEquippedItem(creature.id);
+    let atk = creature.attack;
+    let def = creature.defense;
+    let spd = creature.speed;
+    if (item) {
+      if (item.type === 'weapon') atk += item.bonus;
+      if (item.type === 'armor') def += item.bonus;
+      if (item.type === 'charm') spd += item.bonus;
+    }
+    return { attack: atk, defense: def, speed: spd, item };
+  }
+
+  function tribeMult(attackerTribe, defenderTribe) {
+    return TYPE_ADV[attackerTribe] === defenderTribe ? 1.25 : 1;
+  }
+
+  // ========== UI HELPERS ==========
+  function $(sel) { return document.querySelector(sel); }
+  function $$(sel) { return Array.from(document.querySelectorAll(sel)); }
+
+  function showScreen(name) {
+    $$('.screen').forEach(s => s.classList.remove('active'));
+    $$('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.screen === name));
+    const el = $('#screen-' + name);
+    if (el) el.classList.add('active');
+    if (name === 'collection') renderCollection();
+    if (name === 'team') renderTeam();
+    if (name !== 'scan') stopCamera();
+  }
+
+  $$('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => showScreen(btn.dataset.screen));
+  });
+
+
+  // ========== 24h SCAN COOLDOWN ==========
+  const SCAN_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+
+  function normalizeCode(code) {
+    return String(code || '').trim();
+  }
+
+  function pruneScanLog(now) {
+    const log = save.scanLog || {};
+    let changed = false;
+    for (const key of Object.keys(log)) {
+      if (!log[key] || now - log[key] >= SCAN_COOLDOWN_MS) {
+        delete log[key];
+        changed = true;
+      }
+    }
+    save.scanLog = log;
+    return changed;
+  }
+
+  function remainingScanCooldown(code, now) {
+    now = now || Date.now();
+    const key = normalizeCode(code);
+    if (!key) return 0;
+    const last = (save.scanLog || {})[key];
+    if (!last) return 0;
+    const left = SCAN_COOLDOWN_MS - (now - last);
+    return left > 0 ? left : 0;
+  }
+
+  function formatDuration(ms) {
+    const totalSec = Math.ceil(ms / 1000);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    if (h > 0) return h + 'h ' + m + 'm';
+    if (m > 0) return m + 'm ' + s + 's';
+    return s + 's';
+  }
+
+  function recordScan(code, now) {
+    now = now || Date.now();
+    if (!save.scanLog) save.scanLog = {};
+    pruneScanLog(now);
+    save.scanLog[normalizeCode(code)] = now;
+    persist();
+  }
+
+  function showScanToast(msg) {
+    const el = document.getElementById('scanToast');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(showScanToast._t);
+    showScanToast._t = setTimeout(() => el.classList.remove('show'), 5000);
+  }
+
+  function hideScanToast() {
+    const el = document.getElementById('scanToast');
+    if (!el) return;
+    el.classList.remove('show');
+  }
+
+  // ========== PULL UI ==========
+  let lastScanCode = null;
+  let scanCooldown = false;
+
+  function showPull(result, meta) {
+    const card = $('#pullCard');
+    const d = result.data;
+    card.className = 'pull-card';
+    if (result.kind === 'creature') {
+      card.classList.add(d.tribe);
+      $('#pullEmoji').textContent = d.emoji;
+      $('#pullName').textContent = d.name;
+      $('#pullMeta').innerHTML =
+        '<span class="badge badge-' + d.tribe + '">' + d.tribe + '</span> ' +
+        '<span class="badge badge-' + d.rarity + '">' + d.rarity + '</span>';
+      const st = { attack: d.attack, defense: d.defense, speed: d.speed };
+      $('#pullStats').innerHTML =
+        '<span>ATK <strong>' + st.attack + '</strong></span>' +
+        '<span>DEF <strong>' + st.defense + '</strong></span>' +
+        '<span>SPD <strong>' + st.speed + '</strong></span>';
+      const note = $('#pullNote');
+      if (meta.already) {
+        note.className = 'pull-note owned';
+        note.textContent = 'Already owned — unlocked once!';
+      } else {
+        note.className = 'pull-note new';
+        note.textContent = 'New creature unlocked!';
+      }
+    } else {
+      card.classList.add('item');
+      $('#pullEmoji').textContent = d.emoji;
+      $('#pullName').textContent = d.name;
+      const typeLabel = d.type === 'weapon' ? '+ATK' : d.type === 'armor' ? '+DEF' : '+SPD';
+      $('#pullMeta').innerHTML =
+        '<span class="badge badge-' + d.rarity + '">' + d.rarity + '</span> ' +
+        '<span class="badge badge-common">' + d.type + ' ' + typeLabel + ' ' + d.bonus + '</span>';
+      $('#pullStats').innerHTML = '';
+      const note = $('#pullNote');
+      note.className = 'pull-note item';
+      note.textContent = 'Item ×' + meta.qty + ' in inventory';
+    }
+    $('#pullOverlay').classList.add('show');
+  }
+
+  $('#btnPullClose').addEventListener('click', () => {
+    $('#pullOverlay').classList.remove('show');
+    scanCooldown = false;
+  });
+
+  function processCode(code) {
+    code = normalizeCode(code);
+    if (!code) return;
+    if (scanCooldown) return;
+
+    const now = Date.now();
+    pruneScanLog(now);
+    const left = remainingScanCooldown(code, now);
+    if (left > 0) {
+      showScanToast('Already scanned this code. Try again in ' + formatDuration(left) + '.');
+      // short anti-spam so continuous camera decode does not flood toasts
+      scanCooldown = true;
+      setTimeout(() => { scanCooldown = false; }, 2000);
+      return;
+    }
+
+    hideScanToast();
+    scanCooldown = true;
+    lastScanCode = code;
+    recordScan(code, now);
+    const result = pullFromCode(code);
+    const meta = applyPull(result);
+    showPull(result, meta);
+    // brief cooldown so continuous scan doesn't spam
+    setTimeout(() => {
+      // keep cooldown until modal closed; if closed already, allow
+      if (!$('#pullOverlay').classList.contains('show')) scanCooldown = false;
+    }, 1500);
+  }
+
+  $('#btnManualScan').addEventListener('click', () => {
+    const v = ($('#manualCode').value || '').trim();
+    if (!v) {
+      showScanToast('Enter a code first, or tap Simulate Scan.');
+      return;
+    }
+    processCode(v);
+  });
+  $('#manualCode').addEventListener('keydown', e => {
+    if (e.key === 'Enter') processCode($('#manualCode').value);
+  });
+  $('#btnSimulateScan').addEventListener('click', () => {
+    processCode('sim-' + Date.now());
+  });
+
+  // ========== CAMERA / ZXING ==========
+  let codeReader = null;
+  let scanning = false;
+  let videoStream = null;
+
+  function setCamStatus(msg) {
+    $('#cameraStatus').textContent = msg;
+  }
+
+  async function startCamera() {
+    if (scanning) return;
+    $('#btnStartCam').disabled = true;
+    setCamStatus('Requesting camera…');
+    try {
+      if (!window.ZXing) throw new Error('ZXing library not loaded (need network once for CDN)');
+      codeReader = new ZXing.BrowserMultiFormatReader();
+      const devices = await codeReader.listVideoInputDevices();
+      let deviceId = undefined;
+      if (devices && devices.length) {
+        // prefer back camera
+        const back = devices.find(d => /back|rear|environment/i.test(d.label));
+        deviceId = (back || devices[devices.length - 1]).deviceId;
+      }
+      scanning = true;
+      $('#btnStopCam').disabled = false;
+      setCamStatus('Point at a UPC, EAN, or QR code…');
+      codeReader.decodeFromVideoDevice(deviceId, 'scanVideo', (result, err) => {
+        if (result) {
+          const text = result.getText();
+          if (text) processCode(text);
+        }
+        // NotFoundException is normal while scanning
+      });
+    } catch (err) {
+      scanning = false;
+      $('#btnStartCam').disabled = false;
+      $('#btnStopCam').disabled = true;
+      const msg = (err && err.message) ? err.message : String(err);
+      setCamStatus('Camera unavailable — use Manual Entry or Simulate Scan. (' + msg.slice(0, 80) + ')');
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setCamStatus('No camera API — use Manual Entry or Simulate Scan below.');
+      }
+    }
+  }
+
+  function stopCamera() {
+    scanning = false;
+    try {
+      if (codeReader) {
+        codeReader.reset();
+        codeReader = null;
+      }
+    } catch (e) { /* ignore */ }
+    const video = $('#scanVideo');
+    if (video && video.srcObject) {
+      video.srcObject.getTracks().forEach(t => t.stop());
+      video.srcObject = null;
+    }
+    $('#btnStartCam').disabled = false;
+    $('#btnStopCam').disabled = true;
+    setCamStatus('Camera stopped. Tap Start Camera to scan barcodes for creatures, or use Manual / Simulate Scan.');
+  }
+
+  $('#btnStartCam').addEventListener('click', startCamera);
+  $('#btnStopCam').addEventListener('click', stopCamera);
+
+  // Do not auto-start camera — user must tap Start Camera
+  setCamStatus('Camera is used to scan barcodes for creatures. Tap Start Camera when ready.');
+  $('#btnStartCam').disabled = false;
+  if (!(location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+    setCamStatus('Camera needs HTTPS or localhost. Manual Entry and Simulate Scan work anytime.');
+  }
+
+
+  // ========== EXPORT / IMPORT SAVE ==========
+  function showSaveToast(msg, isError) {
+    const el = document.getElementById('saveToast');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('show');
+    el.style.background = isError ? 'rgba(248, 81, 73, 0.15)' : 'rgba(74, 222, 128, 0.12)';
+    el.style.borderColor = isError ? 'rgba(248, 81, 73, 0.45)' : 'rgba(74, 222, 128, 0.45)';
+    el.style.color = isError ? '#ffb4af' : '#86efac';
+    clearTimeout(showSaveToast._t);
+    showSaveToast._t = setTimeout(() => el.classList.remove('show'), 5000);
+  }
+
+  function validateSaveData(data) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      return 'Save must be a JSON object.';
+    }
+    if (!Array.isArray(data.creatures)) {
+      return 'Missing creatures array.';
+    }
+    if (!data.items || typeof data.items !== 'object' || Array.isArray(data.items)) {
+      return 'Missing items object.';
+    }
+    if (!data.equipment || typeof data.equipment !== 'object' || Array.isArray(data.equipment)) {
+      return 'Missing equipment object.';
+    }
+    if (!Array.isArray(data.team) || data.team.length !== 3) {
+      return 'Team must be an array of length 3.';
+    }
+    if (data.scanLog != null && (typeof data.scanLog !== 'object' || Array.isArray(data.scanLog))) {
+      return 'scanLog must be an object when present.';
+    }
+    // soft-validate creature ids are strings
+    for (const id of data.creatures) {
+      if (typeof id !== 'string') return 'Creature ids must be strings.';
+    }
+    return null;
+  }
+
+  function applyImportedSave(data) {
+    const err = validateSaveData(data);
+    if (err) return err;
+    save = {
+      creatures: data.creatures.slice(),
+      items: Object.assign({}, data.items),
+      equipment: Object.assign({}, data.equipment),
+      team: [data.team[0] || null, data.team[1] || null, data.team[2] || null],
+      scanLog: data.scanLog && typeof data.scanLog === 'object' ? Object.assign({}, data.scanLog) : {}
+    };
+    persist();
+    renderCollection();
+    renderTeam();
+    return null;
+  }
+
+  function exportSave() {
+    const blob = new Blob([JSON.stringify(save, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'codecreatures-save.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showSaveToast('Save exported.', false);
+  }
+
+  function importSaveFromText(raw) {
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch (e) {
+      showSaveToast('Invalid JSON — current save kept.', true);
+      return;
+    }
+    const err = applyImportedSave(data);
+    if (err) {
+      showSaveToast(err + ' Current save kept.', true);
+      return;
+    }
+    showSaveToast('Save imported.', false);
+    const paste = document.getElementById('importPaste');
+    if (paste) paste.value = '';
+  }
+
+  $('#btnExportSave').addEventListener('click', exportSave);
+  $('#btnImportSave').addEventListener('click', () => $('#importFile').click());
+  $('#importFile').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => importSaveFromText(String(reader.result || ''));
+    reader.onerror = () => showSaveToast('Could not read file — current save kept.', true);
+    reader.readAsText(file);
+  });
+  $('#btnImportPaste').addEventListener('click', () => {
+    importSaveFromText(($('#importPaste').value || '').trim());
+  });
+
+  // ========== COLLECTION ==========
+  $$('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      $$('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const which = tab.dataset.ctab;
+      $('#col-creatures').style.display = which === 'creatures' ? '' : 'none';
+      $('#col-items').style.display = which === 'items' ? '' : 'none';
+    });
+  });
+
+  function renderCollection() {
+    const cEl = $('#col-creatures');
+    const iEl = $('#col-items');
+    if (!save.creatures.length) {
+      cEl.innerHTML = '<div class="empty-state"><div class="big">📭</div>No creatures yet.<br>Scan a code to unlock one!</div>';
+    } else {
+      cEl.innerHTML = '<div class="grid">' + save.creatures.map(id => {
+        const c = CREATURES.find(x => x.id === id);
+        if (!c) return '';
+        const eq = getEquippedItem(id);
+        const st = effectiveStats(c);
+        const equipMark = eq
+          ? '<span class="equip-chip" title="Equipped: ' + eq.name + '">' + eq.emoji + '</span>'
+          : '';
+        return '<div class="creature-tile ' + c.tribe + ' rarity-' + c.rarity + '" data-cid="' + c.id + '">' +
+          equipMark +
+          '<div class="card-art"><span class="card-art-emoji">' + c.emoji + '</span></div>' +
+          '<div class="card-banner">' + c.name + '</div>' +
+          '<div class="card-badges">' +
+            '<span class="badge badge-' + c.tribe + '">' + c.tribe + '</span>' +
+            '<span class="badge badge-' + c.rarity + '">' + c.rarity + '</span>' +
+          '</div>' +
+          '<div class="card-stats">' +
+            '<span class="card-stat">ATK<strong>' + st.attack + '</strong></span>' +
+            '<span class="card-stat">DEF<strong>' + st.defense + '</strong></span>' +
+            '<span class="card-stat">SPD<strong>' + st.speed + '</strong></span>' +
+          '</div>' +
+          '</div>';
+      }).join('') + '</div>';
+      cEl.querySelectorAll('.creature-tile').forEach(tile => {
+        tile.addEventListener('click', () => openCreatureDetail(tile.dataset.cid));
+      });
+    }
+
+    const ownedItems = Object.keys(save.items).filter(id => save.items[id] > 0);
+    if (!ownedItems.length) {
+      iEl.innerHTML = '<div class="empty-state"><div class="big">🎒</div>No items yet.<br>About 1 in 3 scans yields an item.</div>';
+    } else {
+      iEl.innerHTML = '<div class="grid">' + ownedItems.map(id => {
+        const it = ITEMS.find(x => x.id === id);
+        if (!it) return '';
+        const typeLabel = it.type === 'weapon' ? '+ATK' : it.type === 'armor' ? '+DEF' : '+SPD';
+        const typeName = it.type.charAt(0).toUpperCase() + it.type.slice(1);
+        return '<div class="item-tile rarity-' + it.rarity + '" data-iid="' + it.id + '">' +
+          '<span class="qty-badge">×' + save.items[id] + '</span>' +
+          '<div class="card-art"><span class="card-art-emoji">' + it.emoji + '</span></div>' +
+          '<div class="card-banner">' + it.name + '</div>' +
+          '<div class="card-badges">' +
+            '<span class="badge badge-' + it.rarity + '">' + it.rarity + '</span>' +
+            '<span class="badge badge-common">' + typeName + '</span>' +
+          '</div>' +
+          '<div class="card-bonus">' + typeLabel + ' ' + it.bonus + '</div>' +
+          '</div>';
+      }).join('') + '</div>';
+      iEl.querySelectorAll('.item-tile').forEach(tile => {
+        tile.addEventListener('click', () => openItemDetail(tile.dataset.iid));
+      });
+    }
+  }
+
+  function openItemDetail(iid) {
+    const it = ITEMS.find(x => x.id === iid);
+    if (!it) return;
+    const typeLabel = it.type === 'weapon' ? '+ATK' : it.type === 'armor' ? '+DEF' : '+SPD';
+    const typeName = it.type.charAt(0).toUpperCase() + it.type.slice(1);
+    const qty = save.items[iid] || 0;
+    $('#detailContent').innerHTML =
+      '<div class="detail-head">' +
+        '<div class="detail-emoji">' + it.emoji + '</div>' +
+        '<div class="detail-info">' +
+          '<h3>' + it.name + '</h3>' +
+          '<span class="badge badge-' + it.rarity + '">' + it.rarity + '</span> ' +
+          '<span class="badge badge-common">' + typeName + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<p class="hint" style="margin-top:0">Bonus: <strong>' + typeLabel + ' ' + it.bonus + '</strong></p>' +
+      '<p class="hint">Quantity in inventory: <strong>×' + qty + '</strong></p>' +
+      '<p class="hint">Equip from a creature card on the Creatures tab.</p>';
+    $('#detailModal').classList.add('show');
+  }
+
+  function openCreatureDetail(cid) {
+    const c = CREATURES.find(x => x.id === cid);
+    if (!c) return;
+    const st = effectiveStats(c);
+    const maxStat = 40;
+    const ownedItemIds = Object.keys(save.items).filter(id => save.items[id] > 0);
+    // items already equipped on others still selectable only if unequipped OR this creature's
+    const currentEq = save.equipment[cid] || '';
+    const options = ownedItemIds.map(id => {
+      const it = ITEMS.find(x => x.id === id);
+      if (!it) return '';
+      const usedBy = Object.keys(save.equipment).find(k => save.equipment[k] === id && k !== cid);
+      const typeLabel = it.type === 'weapon' ? '+ATK' : it.type === 'armor' ? '+DEF' : '+SPD';
+      const label = it.emoji + ' ' + it.name + ' (' + typeLabel + it.bonus + ')' + (usedBy ? ' [on other]' : '');
+      const disabled = usedBy ? ' disabled' : '';
+      const sel = currentEq === id ? ' selected' : '';
+      return '<option value="' + id + '"' + sel + disabled + '>' + label + '</option>';
+    }).join('');
+
+    $('#detailContent').innerHTML =
+      '<div class="detail-head">' +
+        '<div class="detail-emoji">' + c.emoji + '</div>' +
+        '<div class="detail-info">' +
+          '<h3>' + c.name + '</h3>' +
+          '<span class="badge badge-' + c.tribe + '">' + c.tribe + '</span> ' +
+          '<span class="badge badge-' + c.rarity + '">' + c.rarity + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="stat-bars">' +
+        statBar('ATK', 'atk', st.attack, maxStat) +
+        statBar('DEF', 'def', st.defense, maxStat) +
+        statBar('SPD', 'spd', st.speed, maxStat) +
+      '</div>' +
+      (st.item ? '<p class="hint">Equipped: ' + st.item.emoji + ' ' + st.item.name + ' (+' + st.item.bonus + ')</p>' : '') +
+      '<div class="equip-select">' +
+        '<label for="equipSelect">Equip item (max one)</label>' +
+        '<select id="equipSelect">' +
+          '<option value="">— None —</option>' +
+          options +
+        '</select>' +
+      '</div>' +
+      '<div class="btn-row">' +
+        '<button class="btn btn-primary" id="btnEquip" type="button">Save Equipment</button>' +
+        '<button class="btn btn-ghost" id="btnUnequip" type="button">Unequip</button>' +
+      '</div>';
+
+    $('#btnEquip').addEventListener('click', () => {
+      const val = $('#equipSelect').value;
+      if (val) {
+        // unequip from anyone else
+        Object.keys(save.equipment).forEach(k => {
+          if (save.equipment[k] === val) delete save.equipment[k];
+        });
+        save.equipment[cid] = val;
+      } else {
+        delete save.equipment[cid];
+      }
+      persist();
+      closeDetail();
+      renderCollection();
+    });
+    $('#btnUnequip').addEventListener('click', () => {
+      delete save.equipment[cid];
+      persist();
+      closeDetail();
+      renderCollection();
+    });
+    $('#detailModal').classList.add('show');
+  }
+
+  function statBar(label, cls, val, max) {
+    const pct = Math.min(100, Math.round((val / max) * 100));
+    return '<div class="stat-row"><span class="label">' + label + '</span>' +
+      '<div class="bar-track"><div class="bar-fill ' + cls + '" style="width:' + pct + '%"></div></div>' +
+      '<span class="val">' + val + '</span></div>';
+  }
+
+  function closeDetail() {
+    $('#detailModal').classList.remove('show');
+  }
+  $('#btnDetailClose').addEventListener('click', closeDetail);
+  $('#detailModal').addEventListener('click', e => {
+    if (e.target === $('#detailModal')) closeDetail();
+  });
+
+  // ========== TEAM ==========
+  let activeSlot = 0;
+
+  function renderTeam() {
+    const slots = $('#teamSlots');
+    slots.innerHTML = save.team.map((id, idx) => {
+      if (!id) {
+        return '<div class="team-slot' + (activeSlot === idx ? ' selected' : '') + '" data-slot="' + idx + '">' +
+          '<div class="slot-num">' + (idx + 1) + '</div>' +
+          '<div class="slot-empty">Tap to assign…</div></div>';
+      }
+      const c = CREATURES.find(x => x.id === id);
+      if (!c) {
+        return '<div class="team-slot" data-slot="' + idx + '"><div class="slot-num">' + (idx + 1) + '</div><div class="slot-empty">Empty</div></div>';
+      }
+      const st = effectiveStats(c);
+      return '<div class="team-slot filled ' + c.tribe + '" data-slot="' + idx + '">' +
+        '<div class="slot-num">' + (idx + 1) + '</div>' +
+        '<div class="slot-emoji">' + c.emoji + '</div>' +
+        '<div class="slot-info"><div class="slot-name">' + c.name + '</div>' +
+        '<div class="slot-meta">' + c.tribe + ' · ATK ' + st.attack + ' DEF ' + st.defense + ' SPD ' + st.speed +
+        (st.item ? ' · ' + st.item.emoji : '') + '</div></div>' +
+        '<button class="btn btn-ghost" data-clear="' + idx + '" type="button" style="width:auto;padding:8px 10px;min-height:36px">✕</button>' +
+        '</div>';
+    }).join('');
+
+    slots.querySelectorAll('.team-slot').forEach(el => {
+      el.addEventListener('click', e => {
+        if (e.target.closest('[data-clear]')) return;
+        activeSlot = parseInt(el.dataset.slot, 10);
+        renderTeam();
+      });
+    });
+    slots.querySelectorAll('[data-clear]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const i = parseInt(btn.dataset.clear, 10);
+        save.team[i] = null;
+        persist();
+        renderTeam();
+      });
+    });
+
+    const picker = $('#teamPicker');
+    if (!save.creatures.length) {
+      picker.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="big">📭</div>Unlock creatures first.</div>';
+      return;
+    }
+    picker.innerHTML = save.creatures.map(id => {
+      const c = CREATURES.find(x => x.id === id);
+      if (!c) return '';
+      const inTeam = save.team.includes(id);
+      return '<div class="picker-tile' + (inTeam ? ' in-team' : '') + '" data-pick="' + id + '">' +
+        '<div class="pe">' + c.emoji + '</div><div class="pn">' + c.name + '</div></div>';
+    }).join('');
+    picker.querySelectorAll('.picker-tile').forEach(tile => {
+      tile.addEventListener('click', () => {
+        const id = tile.dataset.pick;
+        if (save.team.includes(id)) {
+          // remove from team
+          const idx = save.team.indexOf(id);
+          save.team[idx] = null;
+        } else {
+          // place in active slot or first empty
+          let slot = activeSlot;
+          if (save.team[slot]) {
+            const empty = save.team.findIndex(x => !x);
+            if (empty >= 0) slot = empty;
+          }
+          // if replacing, just overwrite active
+          save.team[slot] = id;
+          // advance active slot
+          const next = save.team.findIndex(x => !x);
+          activeSlot = next >= 0 ? next : slot;
+        }
+        persist();
+        renderTeam();
+      });
+    });
+  }
+
+  // ========== BATTLE ==========
+  let battleBusy = false;
+
+  function randomEnemyTeam() {
+    const shuffled = CREATURES.slice().sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 3).map(c => c.id);
+  }
+
+  function makeFighter(creatureId, isEnemy) {
+    const c = CREATURES.find(x => x.id === creatureId);
+    const base = isEnemy
+      ? { attack: c.attack, defense: c.defense, speed: c.speed, item: null }
+      : effectiveStats(c);
+    const maxHp = 40 + c.defense * 2 + (c.rarity === 'legendary' ? 20 : c.rarity === 'rare' ? 10 : 0);
+    return {
+      id: c.id,
+      name: c.name,
+      tribe: c.tribe,
+      emoji: c.emoji,
+      rarity: c.rarity,
+      attack: base.attack,
+      defense: base.defense,
+      speed: base.speed,
+      hp: maxHp,
+      maxHp: maxHp,
+      alive: true
+    };
+  }
+
+  function renderFighterEl(el, f, side) {
+    if (!f) {
+      el.innerHTML = '<div class="fighter-row"><div class="fighter-info">Waiting…</div></div>';
+      return;
+    }
+    const pct = Math.max(0, Math.round((f.hp / f.maxHp) * 100));
+    let hpCls = '';
+    if (pct <= 25) hpCls = 'critical';
+    else if (pct <= 50) hpCls = 'low';
+    el.innerHTML =
+      '<div class="fighter-row">' +
+        '<div class="fighter-emoji">' + f.emoji + '</div>' +
+        '<div class="fighter-info">' +
+          '<div class="fighter-name">' + f.name + '</div>' +
+          '<div class="fighter-tribe"><span class="badge badge-' + f.tribe + '">' + f.tribe + '</span></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="hp-wrap">' +
+        '<div class="hp-label"><span>HP</span><span>' + Math.max(0, f.hp) + ' / ' + f.maxHp + '</span></div>' +
+        '<div class="hp-track"><div class="hp-fill ' + hpCls + '" style="width:' + pct + '%"></div></div>' +
+      '</div>';
+  }
+
+  function renderBench(el, fighters, activeIdx) {
+    el.innerHTML = fighters.map((f, i) => {
+      let cls = 'bench-chip';
+      if (f.alive) cls += ' alive';
+      if (i === activeIdx && f.alive) cls += ' active';
+      return '<span class="' + cls + '">' + f.emoji + ' ' + f.name + (f.alive ? '' : ' 💀') + '</span>';
+    }).join('');
+  }
+
+  function logBattle(html) {
+    const log = $('#battleLog');
+    log.innerHTML += '<div>' + html + '</div>';
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function calcDamage(atk, def, mult) {
+    const variance = 0.9 + Math.random() * 0.2; // ±10%
+    return Math.max(1, Math.floor((atk * 0.65 + 4 - def * 0.35) * mult * variance));
+  }
+
+  function sleep(ms) {
+    return new Promise(r => setTimeout(r, ms));
+  }
+
+  async function runBattle() {
+    if (battleBusy) return;
+    const teamIds = save.team.filter(Boolean);
+    if (teamIds.length !== 3) {
+      alert('Pick exactly 3 creatures on the Team screen first.');
+      showScreen('team');
+      return;
+    }
+    // unique check
+    if (new Set(teamIds).size !== 3) {
+      alert('Team must have 3 different creatures.');
+      return;
+    }
+
+    battleBusy = true;
+    $('#btnStartBattle').disabled = true;
+    $('#btnBattleAgain').style.display = 'none';
+    $('#winnerBanner').innerHTML = '';
+    $('#battleArea').style.display = '';
+    $('#battleLog').innerHTML = '';
+
+    const playerTeam = teamIds.map(id => makeFighter(id, false));
+    const enemyTeam = randomEnemyTeam().map(id => makeFighter(id, true));
+    let pIdx = 0;
+    let eIdx = 0;
+
+    function syncUI() {
+      renderFighterEl($('#playerFighter'), playerTeam[pIdx], 'player');
+      renderFighterEl($('#enemyFighter'), enemyTeam[eIdx], 'enemy');
+      renderBench($('#playerBench'), playerTeam, pIdx);
+      renderBench($('#enemyBench'), enemyTeam, eIdx);
+    }
+
+    syncUI();
+    logBattle('Battle start! <strong>You</strong> vs <strong>Enemy</strong>.');
+    await sleep(600);
+
+    while (playerTeam.some(f => f.alive) && enemyTeam.some(f => f.alive)) {
+      const p = playerTeam[pIdx];
+      const e = enemyTeam[eIdx];
+      if (!p.alive || !e.alive) break;
+
+      const order = p.speed >= e.speed
+        ? [{ f: p, foe: e, side: 'player' }, { f: e, foe: p, side: 'enemy' }]
+        : [{ f: e, foe: p, side: 'enemy' }, { f: p, foe: e, side: 'player' }];
+
+      for (const turn of order) {
+        if (!turn.f.alive || !turn.foe.alive) continue;
+        const mult = tribeMult(turn.f.tribe, turn.foe.tribe);
+        const dmg = calcDamage(turn.f.attack, turn.foe.defense, mult);
+        const atkEl = turn.side === 'player' ? $('#playerFighter') : $('#enemyFighter');
+        const hitEl = turn.side === 'player' ? $('#enemyFighter') : $('#playerFighter');
+        atkEl.classList.add('attacking');
+        await sleep(280);
+        atkEl.classList.remove('attacking');
+        turn.foe.hp -= dmg;
+        hitEl.classList.add('hit');
+        const adv = mult > 1 ? ' <em>(type advantage!)</em>' : '';
+        logBattle('<span class="log-hit">' + turn.f.emoji + ' ' + turn.f.name + '</span> hits ' +
+          turn.foe.name + ' for <strong>' + dmg + '</strong>' + adv);
+        syncUI();
+        await sleep(350);
+        hitEl.classList.remove('hit');
+
+        if (turn.foe.hp <= 0) {
+          turn.foe.hp = 0;
+          turn.foe.alive = false;
+          logBattle('<span class="log-ko">' + turn.foe.emoji + ' ' + turn.foe.name + ' is KO!</span>');
+          syncUI();
+          await sleep(500);
+          // next fighter
+          if (turn.side === 'player') {
+            // enemy KO'd
+            const next = enemyTeam.findIndex((f, i) => i > eIdx && f.alive);
+            if (next >= 0) {
+              eIdx = next;
+              logBattle('Enemy sends out ' + enemyTeam[eIdx].emoji + ' ' + enemyTeam[eIdx].name + '!');
+              syncUI();
+              await sleep(500);
+            }
+          } else {
+            const next = playerTeam.findIndex((f, i) => i > pIdx && f.alive);
+            if (next >= 0) {
+              pIdx = next;
+              logBattle('You send out ' + playerTeam[pIdx].emoji + ' ' + playerTeam[pIdx].name + '!');
+              syncUI();
+              await sleep(500);
+            }
+          }
+          break; // end round after KO
+        }
+      }
+      await sleep(200);
+    }
+
+    const playerWin = playerTeam.some(f => f.alive);
+    const banner = $('#winnerBanner');
+    if (playerWin) {
+      banner.innerHTML = '<div class="winner-banner win">🏆 Victory! CodeCreatures win!</div>';
+      logBattle('<span class="log-win">You win the battle!</span>');
+    } else {
+      banner.innerHTML = '<div class="winner-banner lose">💀 Defeat… Train harder!</div>';
+      logBattle('<span class="log-ko">Your team was wiped out.</span>');
+    }
+    syncUI();
+    battleBusy = false;
+    $('#btnStartBattle').disabled = false;
+    $('#btnBattleAgain').style.display = '';
+  }
+
+  $('#btnStartBattle').addEventListener('click', runBattle);
+  $('#btnBattleAgain').addEventListener('click', runBattle);
+
+  // Initial
+  renderCollection();
+  renderTeam();
+})();
+</script>
+</body>
+</html>

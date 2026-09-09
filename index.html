@@ -844,6 +844,199 @@ input:focus { border-color: var(--tide); }
   border-radius: 999px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.35);
 }
+
+/* Card viewer (3D trading card) */
+#detailModal.card-viewer-open .modal-sheet.card-viewer-sheet {
+  max-height: 92vh;
+  padding-bottom: calc(28px + var(--safe-b));
+}
+.cv-stage {
+  perspective: 900px;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0 12px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.cv-card {
+  aspect-ratio: 5 / 7;
+  width: min(220px, 58vw);
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  cursor: grab;
+}
+.cv-card.is-dragging {
+  transition: none;
+  cursor: grabbing;
+}
+.cv-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 2px solid #30363d;
+  background: linear-gradient(165deg, var(--bg3), var(--bg2) 55%, #0a0e14);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.45);
+}
+.cv-face-back {
+  transform: rotateY(180deg);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+}
+.cv-art {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: 12px;
+  background: radial-gradient(ellipse at 50% 40%, rgba(255,255,255,0.08), transparent 65%);
+  min-height: 0;
+  overflow: hidden;
+}
+.cv-art .card-art-emoji,
+.cv-art-emoji {
+  font-size: 4.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,0.4));
+  position: relative;
+  z-index: 1;
+}
+.cv-banner {
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-align: center;
+  margin-top: 8px;
+  letter-spacing: 0.02em;
+}
+.cv-badges {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.cv-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: 10px;
+  font-size: 0.68rem;
+}
+.cv-stat {
+  flex: 1;
+  text-align: center;
+  background: rgba(0,0,0,0.28);
+  border-radius: 8px;
+  padding: 6px 4px;
+  color: var(--muted);
+}
+.cv-stat strong {
+  display: block;
+  color: var(--text);
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+.cv-equip-mark {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  font-size: 1.1rem;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+.cv-holo {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: color-dodge;
+  opacity: 0.55;
+  background:
+    linear-gradient(115deg,
+      transparent 20%,
+      rgba(255,120,200,0.35) 35%,
+      rgba(120,220,255,0.4) 45%,
+      rgba(255,230,120,0.35) 55%,
+      transparent 70%),
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35), transparent 45%);
+  background-size: 200% 200%;
+  background-position: 50% 50%;
+}
+.cv-holo.idle {
+  animation: cvHoloShimmer 4.5s ease-in-out infinite alternate;
+}
+@keyframes cvHoloShimmer {
+  from { background-position: 35% 40%; }
+  to { background-position: 65% 60%; }
+}
+.cv-face.ember {
+  border-color: var(--ember-dim);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,107,53,0.35);
+}
+.cv-face.tide {
+  border-color: var(--tide-dim);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(45,212,191,0.35);
+}
+.cv-face.growth {
+  border-color: var(--growth-dim);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(74,222,128,0.35);
+}
+.cv-face.rarity-rare {
+  box-shadow: 0 12px 28px rgba(0,0,0,0.45), inset 0 0 18px rgba(167,139,250,0.35);
+}
+.cv-face.rarity-legendary,
+.cv-face.is-shiny {
+  border-color: var(--legendary);
+  box-shadow: 0 14px 36px rgba(251,191,36,0.35), inset 0 0 0 2px rgba(251,191,36,0.55), inset 0 0 22px rgba(251,191,36,0.2);
+}
+.cv-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 4px 0 12px;
+}
+.cv-controls .btn {
+  width: auto;
+  min-width: 120px;
+  padding: 10px 18px;
+}
+.cv-back-emblem {
+  font-size: 3.2rem;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.cv-back-flavor {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.45;
+  padding: 0 6px;
+}
+.cv-back-set {
+  margin-top: auto;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--legendary);
+  opacity: 0.9;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cv-holo.idle { animation: none; }
+  .cv-card { transition: none; }
+}
+
 </style>
 </head>
 <body>
@@ -976,17 +1169,17 @@ input:focus { border-color: var(--tide); }
 
   // ========== DATA ==========
   const CREATURES = [
-    { id: 'sparkpup', name: 'Sparkpup', tribe: 'ember', attack: 12, defense: 8, speed: 14, rarity: 'common', emoji: '🐕‍🦺' },
-    { id: 'cindrax', name: 'Cindrax', tribe: 'ember', attack: 16, defense: 11, speed: 10, rarity: 'common', emoji: '🦎' },
-    { id: 'flarewyrm', name: 'Flarewyrm', tribe: 'ember', attack: 22, defense: 14, speed: 16, rarity: 'rare', emoji: '🐉' },
-    { id: 'ashking', name: 'Ashking', tribe: 'ember', attack: 28, defense: 20, speed: 12, rarity: 'legendary', emoji: '🦁' },
-    { id: 'droplet', name: 'Droplet', tribe: 'tide', attack: 10, defense: 10, speed: 16, rarity: 'common', emoji: '💧' },
-    { id: 'ripscale', name: 'Ripscale', tribe: 'tide', attack: 15, defense: 13, speed: 11, rarity: 'common', emoji: '🐟' },
-    { id: 'tidecaller', name: 'Tidecaller', tribe: 'tide', attack: 20, defense: 16, speed: 15, rarity: 'rare', emoji: '🐙' },
-    { id: 'krakensoul', name: 'Krakensoul', tribe: 'tide', attack: 26, defense: 21, speed: 13, rarity: 'legendary', emoji: '🦑' },
-    { id: 'sproutling', name: 'Sproutling', tribe: 'growth', attack: 11, defense: 12, speed: 13, rarity: 'common', emoji: '🌱' },
-    { id: 'vineguard', name: 'Vineguard', tribe: 'growth', attack: 14, defense: 18, speed: 8, rarity: 'common', emoji: '🛡️' },
-    { id: 'bloomheart', name: 'Bloomheart', tribe: 'growth', attack: 24, defense: 17, speed: 14, rarity: 'legendary', emoji: '🌺' }
+    { id: 'sparkpup', name: 'Sparkpup', tribe: 'ember', attack: 12, defense: 8, speed: 14, rarity: 'common', emoji: '🐕‍🦺', flavor: 'A restless ember pup that lights the trail with every bark.' },
+    { id: 'cindrax', name: 'Cindrax', tribe: 'ember', attack: 16, defense: 11, speed: 10, rarity: 'common', emoji: '🦎', flavor: 'Scales smolder as it sketches heat-trails through dry brush.' },
+    { id: 'flarewyrm', name: 'Flarewyrm', tribe: 'ember', attack: 22, defense: 14, speed: 16, rarity: 'rare', emoji: '🐉', flavor: 'Coils of living fire that write runes in the night sky.' },
+    { id: 'ashking', name: 'Ashking', tribe: 'ember', attack: 28, defense: 20, speed: 12, rarity: 'legendary', emoji: '🦁', flavor: 'Crowned in cinders, its roar turns dusk into dawn.' },
+    { id: 'droplet', name: 'Droplet', tribe: 'tide', attack: 10, defense: 10, speed: 16, rarity: 'common', emoji: '💧', flavor: 'A bright bead of tide that never quite stays still.' },
+    { id: 'ripscale', name: 'Ripscale', tribe: 'tide', attack: 15, defense: 13, speed: 11, rarity: 'common', emoji: '🐟', flavor: 'Cuts the current into ribbons of silver spray.' },
+    { id: 'tidecaller', name: 'Tidecaller', tribe: 'tide', attack: 20, defense: 16, speed: 15, rarity: 'rare', emoji: '🐙', flavor: 'Whispers to the deep until the waves answer back.' },
+    { id: 'krakensoul', name: 'Krakensoul', tribe: 'tide', attack: 26, defense: 21, speed: 13, rarity: 'legendary', emoji: '🦑', flavor: 'An abyss echo wearing a body of living tide.' },
+    { id: 'sproutling', name: 'Sproutling', tribe: 'growth', attack: 11, defense: 12, speed: 13, rarity: 'common', emoji: '🌱', flavor: 'A first green spark that grows where code meets soil.' },
+    { id: 'vineguard', name: 'Vineguard', tribe: 'growth', attack: 14, defense: 18, speed: 8, rarity: 'common', emoji: '🛡️', flavor: 'Woven roots stand watch so the grove can breathe.' },
+    { id: 'bloomheart', name: 'Bloomheart', tribe: 'growth', attack: 24, defense: 17, speed: 14, rarity: 'legendary', emoji: '🌺', flavor: 'Petals open to the sun and close around a living core.' }
   ];
 
   const ITEMS = [
@@ -1068,6 +1261,29 @@ input:focus { border-color: var(--tide); }
 
   let save = loadSave();
 
+
+  // ========== CREATURE ENTRY HELPERS (string | {id, shiny}) ==========
+  function creatureEntryId(entry) {
+    if (entry == null) return '';
+    if (typeof entry === 'string') return entry;
+    if (typeof entry === 'object' && entry.id != null) return String(entry.id);
+    return String(entry);
+  }
+
+  function isCreatureOwned(id) {
+    return save.creatures.some(e => creatureEntryId(e) === id);
+  }
+
+  function getOwnedShiny(id) {
+    for (let i = 0; i < save.creatures.length; i++) {
+      const e = save.creatures[i];
+      if (typeof e === 'object' && e && creatureEntryId(e) === id) {
+        return !!e.shiny;
+      }
+    }
+    return false;
+  }
+
   // ========== HASH / PULL ==========
   function fnv1a(str) {
     let h = 0x811c9dc5;
@@ -1130,7 +1346,7 @@ input:focus { border-color: var(--tide); }
   function applyPull(result) {
     if (result.kind === 'creature') {
       const id = result.data.id;
-      const already = save.creatures.includes(id);
+      const already = isCreatureOwned(id);
       if (!already) {
         save.creatures.push(id);
         persist();
@@ -1544,7 +1760,8 @@ input:focus { border-color: var(--tide); }
     if (!save.creatures.length) {
       cEl.innerHTML = '<div class="empty-state"><div class="big">📭</div>No creatures yet.<br>Scan a code to unlock one!</div>';
     } else {
-      cEl.innerHTML = '<div class="grid">' + save.creatures.map(id => {
+      cEl.innerHTML = '<div class="grid">' + save.creatures.map(entry => {
+        const id = creatureEntryId(entry);
         const c = CREATURES.find(x => x.id === id);
         if (!c) return '';
         const eq = getEquippedItem(id);
@@ -1616,7 +1833,176 @@ input:focus { border-color: var(--tide); }
       '<p class="hint" style="margin-top:0">Bonus: <strong>' + typeLabel + ' ' + it.bonus + '</strong></p>' +
       '<p class="hint">Quantity in inventory: <strong>×' + qty + '</strong></p>' +
       '<p class="hint">Equip from a creature card on the Creatures tab.</p>';
-    $('#detailModal').classList.add('show');
+    cvDetachListeners();
+    const modal = $('#detailModal');
+    const sheet = $('#detailSheet');
+    modal.classList.remove('card-viewer-open');
+    if (sheet) sheet.classList.remove('card-viewer-sheet');
+    modal.classList.add('show');
+  }
+
+  // ========== CARD VIEWER STATE ==========
+  let cvState = null;
+
+  function prefersReducedMotion() {
+    try {
+      return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function cvTribeEmblem(tribe) {
+    if (tribe === 'ember') return '🔥';
+    if (tribe === 'tide') return '🌊';
+    return '🌿';
+  }
+
+  function cvApplyTransform() {
+    if (!cvState || !cvState.card) return;
+    const flip = cvState.flipped ? 180 : 0;
+    const rx = cvState.rotateX;
+    const ry = cvState.rotateY + flip;
+    cvState.card.style.transform = 'rotateX(' + rx + 'deg) rotateY(' + ry + 'deg)';
+    if (cvState.holo) {
+      const posX = 50 + cvState.rotateY * 2;
+      const posY = 50 + cvState.rotateX * 2;
+      cvState.holo.style.backgroundPosition = posX + '% ' + posY + '%';
+    }
+  }
+
+  function cvDetachListeners() {
+    if (!cvState) return;
+    const stage = cvState.stage;
+    if (stage && cvState._onDown) {
+      stage.removeEventListener('pointerdown', cvState._onDown);
+      stage.removeEventListener('pointermove', cvState._onMove);
+      stage.removeEventListener('pointerup', cvState._onUp);
+      stage.removeEventListener('pointercancel', cvState._onUp);
+    }
+    if (cvState._onFlip && cvState.flipBtn) {
+      cvState.flipBtn.removeEventListener('click', cvState._onFlip);
+    }
+    cvState = null;
+  }
+
+  function cvWireCard(cid) {
+    const stage = document.querySelector('#detailContent .cv-stage');
+    const card = document.querySelector('#detailContent .cv-card');
+    const holo = document.querySelector('#detailContent .cv-holo');
+    const flipBtn = document.getElementById('btnCardFlip');
+    if (!stage || !card) return;
+
+    cvDetachListeners();
+    cvState = {
+      cid: cid,
+      stage: stage,
+      card: card,
+      holo: holo,
+      flipBtn: flipBtn,
+      flipped: false,
+      rotateX: 8,
+      rotateY: -10,
+      dragging: false,
+      pointerId: null,
+      startX: 0,
+      startY: 0,
+      baseRX: 8,
+      baseRY: -10,
+      lastTap: 0
+    };
+    cvApplyTransform();
+
+    function ignoreTarget(t) {
+      if (!t || !t.closest) return true;
+      return !!(t.closest('button, select, option, label, .handle, .cv-controls'));
+    }
+
+    function onDown(e) {
+      if (ignoreTarget(e.target)) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      // double-tap flip
+      const now = Date.now();
+      if (now - cvState.lastTap < 300 && e.target.closest('.cv-card')) {
+        cvState.lastTap = 0;
+        toggleFlip();
+        return;
+      }
+      cvState.lastTap = now;
+      cvState.dragging = true;
+      cvState.pointerId = e.pointerId;
+      cvState.startX = e.clientX;
+      cvState.startY = e.clientY;
+      cvState.baseRX = cvState.rotateX;
+      cvState.baseRY = cvState.rotateY;
+      card.classList.add('is-dragging');
+      if (holo) holo.classList.remove('idle');
+      try { stage.setPointerCapture(e.pointerId); } catch (err) {}
+      e.preventDefault();
+    }
+
+    function onMove(e) {
+      if (!cvState || !cvState.dragging || e.pointerId !== cvState.pointerId) return;
+      const dx = e.clientX - cvState.startX;
+      const dy = e.clientY - cvState.startY;
+      let rx = cvState.baseRX - dy * 0.12;
+      let ry = cvState.baseRY + dx * 0.14;
+      if (rx > 16) rx = 16;
+      if (rx < -16) rx = -16;
+      if (ry > 22) ry = 22;
+      if (ry < -22) ry = -22;
+      cvState.rotateX = rx;
+      cvState.rotateY = ry;
+      cvApplyTransform();
+    }
+
+    function onUp(e) {
+      if (!cvState || e.pointerId !== cvState.pointerId) return;
+      cvState.dragging = false;
+      cvState.pointerId = null;
+      card.classList.remove('is-dragging');
+      // ease toward rest tilt
+      cvState.rotateX = 8;
+      cvState.rotateY = -10;
+      if (prefersReducedMotion()) {
+        card.style.transition = 'none';
+      } else {
+        card.style.transition = '';
+      }
+      cvApplyTransform();
+      if (holo && !prefersReducedMotion()) holo.classList.add('idle');
+      try { stage.releasePointerCapture(e.pointerId); } catch (err) {}
+    }
+
+    function toggleFlip() {
+      if (!cvState) return;
+      cvState.flipped = !cvState.flipped;
+      cvState.rotateX = 8;
+      cvState.rotateY = -10;
+      if (prefersReducedMotion()) {
+        card.style.transition = 'none';
+        cvApplyTransform();
+        // restore next frame so later tilts can animate if motion allowed later
+        requestAnimationFrame(() => { if (cvState && cvState.card) cvState.card.style.transition = 'none'; });
+      } else {
+        card.style.transition = '';
+        cvApplyTransform();
+      }
+    }
+
+    cvState._onDown = onDown;
+    cvState._onMove = onMove;
+    cvState._onUp = onUp;
+    cvState._onFlip = function (ev) {
+      ev.preventDefault();
+      toggleFlip();
+    };
+
+    stage.addEventListener('pointerdown', onDown);
+    stage.addEventListener('pointermove', onMove);
+    stage.addEventListener('pointerup', onUp);
+    stage.addEventListener('pointercancel', onUp);
+    if (flipBtn) flipBtn.addEventListener('click', cvState._onFlip);
   }
 
   function openCreatureDetail(cid) {
@@ -1625,7 +2011,6 @@ input:focus { border-color: var(--tide); }
     const st = effectiveStats(c);
     const maxStat = 40;
     const ownedItemIds = Object.keys(save.items).filter(id => save.items[id] > 0);
-    // items already equipped on others still selectable only if unequipped OR this creature's
     const currentEq = save.equipment[cid] || '';
     const options = ownedItemIds.map(id => {
       const it = ITEMS.find(x => x.id === id);
@@ -1638,14 +2023,48 @@ input:focus { border-color: var(--tide); }
       return '<option value="' + id + '"' + sel + disabled + '>' + label + '</option>';
     }).join('');
 
+    const shiny = getOwnedShiny(c.id);
+    const holo = c.rarity === 'legendary' || shiny;
+    const faceExtra = c.tribe + ' rarity-' + c.rarity + (shiny ? ' is-shiny' : '');
+    const holoHtml = holo
+      ? '<div class="cv-holo' + (prefersReducedMotion() ? '' : ' idle') + '"></div>'
+      : '';
+    const equipMark = st.item
+      ? '<span class="cv-equip-mark" title="Equipped: ' + st.item.name + '">' + st.item.emoji + '</span>'
+      : '';
+    const flavor = c.flavor || '';
+
     $('#detailContent').innerHTML =
-      '<div class="detail-head">' +
-        '<div class="detail-emoji">' + c.emoji + '</div>' +
-        '<div class="detail-info">' +
-          '<h3>' + c.name + '</h3>' +
-          '<span class="badge badge-' + c.tribe + '">' + c.tribe + '</span> ' +
-          '<span class="badge badge-' + c.rarity + '">' + c.rarity + '</span>' +
+      '<div class="cv-stage">' +
+        '<div class="cv-card">' +
+          '<div class="cv-face cv-face-front ' + faceExtra + '">' +
+            equipMark +
+            '<div class="cv-art">' +
+              holoHtml +
+              '<span class="cv-art-emoji">' + c.emoji + '</span>' +
+            '</div>' +
+            '<div class="cv-banner">' + c.name + '</div>' +
+            '<div class="cv-badges">' +
+              '<span class="badge badge-' + c.tribe + '">' + c.tribe + '</span>' +
+              '<span class="badge badge-' + c.rarity + '">' + c.rarity + '</span>' +
+              (shiny ? '<span class="badge badge-legendary">shiny</span>' : '') +
+            '</div>' +
+            '<div class="cv-stats">' +
+              '<span class="cv-stat">ATK<strong>' + st.attack + '</strong></span>' +
+              '<span class="cv-stat">DEF<strong>' + st.defense + '</strong></span>' +
+              '<span class="cv-stat">SPD<strong>' + st.speed + '</strong></span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="cv-face cv-face-back ' + faceExtra + '">' +
+            '<div class="cv-back-emblem">' + cvTribeEmblem(c.tribe) + '</div>' +
+            '<div class="cv-banner">' + c.name + '</div>' +
+            '<p class="cv-back-flavor">' + flavor + '</p>' +
+            '<div class="cv-back-set">CodeCreatures</div>' +
+          '</div>' +
         '</div>' +
+      '</div>' +
+      '<div class="cv-controls">' +
+        '<button class="btn btn-tide" id="btnCardFlip" type="button">Flip</button>' +
       '</div>' +
       '<div class="stat-bars">' +
         statBar('ATK', 'atk', st.attack, maxStat) +
@@ -1668,7 +2087,6 @@ input:focus { border-color: var(--tide); }
     $('#btnEquip').addEventListener('click', () => {
       const val = $('#equipSelect').value;
       if (val) {
-        // unequip from anyone else
         Object.keys(save.equipment).forEach(k => {
           if (save.equipment[k] === val) delete save.equipment[k];
         });
@@ -1686,7 +2104,12 @@ input:focus { border-color: var(--tide); }
       closeDetail();
       renderCollection();
     });
-    $('#detailModal').classList.add('show');
+
+    const modal = $('#detailModal');
+    const sheet = $('#detailSheet');
+    modal.classList.add('show', 'card-viewer-open');
+    if (sheet) sheet.classList.add('card-viewer-sheet');
+    cvWireCard(cid);
   }
 
   function statBar(label, cls, val, max) {
@@ -1697,8 +2120,13 @@ input:focus { border-color: var(--tide); }
   }
 
   function closeDetail() {
-    $('#detailModal').classList.remove('show');
+    cvDetachListeners();
+    const modal = $('#detailModal');
+    const sheet = $('#detailSheet');
+    modal.classList.remove('show', 'card-viewer-open');
+    if (sheet) sheet.classList.remove('card-viewer-sheet');
   }
+
   $('#btnDetailClose').addEventListener('click', closeDetail);
   $('#detailModal').addEventListener('click', e => {
     if (e.target === $('#detailModal')) closeDetail();
@@ -1752,7 +2180,8 @@ input:focus { border-color: var(--tide); }
       picker.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="big">📭</div>Unlock creatures first.</div>';
       return;
     }
-    picker.innerHTML = save.creatures.map(id => {
+    picker.innerHTML = save.creatures.map(entry => {
+      const id = creatureEntryId(entry);
       const c = CREATURES.find(x => x.id === id);
       if (!c) return '';
       const inTeam = save.team.includes(id);

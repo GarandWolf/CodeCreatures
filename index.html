@@ -1197,6 +1197,201 @@ input:focus { border-color: var(--tide); }
 @media (prefers-reduced-motion: reduce) {
   .cv-holo.idle { animation: none; }
   .cv-card { transition: none; }
+  .binder-cover { transition: none !important; }
+  .binder-shell.is-opening .binder-cover,
+  .binder-shell.is-open .binder-cover { transform: none; opacity: 0; pointer-events: none; }
+}
+
+/* ===== Creature Binder (v1) ===== */
+.view-toggle-row { margin-top: 8px; }
+.binder-sort-row[hidden] { display: none !important; }
+.col-toast {
+  display: none;
+  margin: 8px 0 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(45, 212, 191, 0.12);
+  border: 1px solid rgba(45, 212, 191, 0.4);
+  color: #9eeadc;
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+.col-toast.show { display: block; }
+
+.binder-shell {
+  position: relative;
+  margin-top: 4px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(160deg, #1a1410 0%, #0f1218 55%, #12161c 100%);
+  border: 1px solid #3a2f28;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+  min-height: 320px;
+}
+.binder-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(251,191,36,0.12), transparent 50%),
+    linear-gradient(145deg, #3b2a1f 0%, #1c140f 45%, #2a1c14 100%);
+  border-right: 10px solid #1a100c;
+  transform-origin: left center;
+  transition: transform 0.75s cubic-bezier(0.4, 0.05, 0.2, 1), opacity 0.55s ease;
+  box-shadow: inset -12px 0 24px rgba(0,0,0,0.35);
+}
+.binder-cover-crest {
+  font-size: 2.6rem;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+}
+.binder-cover-title {
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: var(--legendary);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+.binder-cover-sub {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(230,237,243,0.7);
+}
+.binder-cover-hint {
+  margin-top: 8px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.binder-shell.is-opening .binder-cover,
+.binder-shell.is-open .binder-cover {
+  transform: perspective(900px) rotateY(-108deg);
+  opacity: 0;
+  pointer-events: none;
+}
+.binder-pages {
+  position: relative;
+  z-index: 1;
+  padding: 12px;
+}
+.binder-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.binder-nav .page-label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-align: center;
+  flex: 1;
+}
+.binder-nav .btn {
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  min-width: 72px;
+}
+.binder-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+@media (min-width: 420px) {
+  .binder-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.binder-sleeve {
+  aspect-ratio: 5 / 7;
+  border-radius: 12px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  background:
+    linear-gradient(165deg, rgba(255,255,255,0.03), transparent 40%),
+    #0c1016;
+  border: 1.5px dashed rgba(139,148,158,0.35);
+  box-shadow: inset 0 0 18px rgba(0,0,0,0.4);
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+.binder-sleeve.owned {
+  border-style: solid;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.15s;
+}
+.binder-sleeve.owned:active { transform: scale(0.97); }
+.binder-sleeve.owned.ember {
+  border-color: rgba(255,107,53,0.7);
+  box-shadow: inset 0 0 20px rgba(255,107,53,0.08), 0 4px 12px rgba(0,0,0,0.35);
+}
+.binder-sleeve.owned.tide {
+  border-color: rgba(45,212,191,0.7);
+  box-shadow: inset 0 0 20px rgba(45,212,191,0.08), 0 4px 12px rgba(0,0,0,0.35);
+}
+.binder-sleeve.owned.growth {
+  border-color: rgba(74,222,128,0.7);
+  box-shadow: inset 0 0 20px rgba(74,222,128,0.08), 0 4px 12px rgba(0,0,0,0.35);
+}
+.binder-sleeve.empty {
+  cursor: default;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+.binder-sleeve .sleeve-art {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #0a0d12 0%, #151b24 100%);
+  border: 1px solid rgba(255,255,255,0.05);
+  margin-bottom: 5px;
+}
+.binder-sleeve .sleeve-art .card-art-emoji { font-size: clamp(1.6rem, 8vw, 2.2rem); }
+.binder-sleeve .sleeve-art .card-art-img,
+.binder-sleeve .sleeve-art .card-art-palette {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+}
+.binder-sleeve .sleeve-name {
+  font-weight: 800;
+  font-size: 0.68rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.binder-sleeve .sleeve-dex {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.binder-sleeve.empty .sleeve-dex {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+}
+.binder-sleeve.empty .sleeve-unk {
+  font-size: 0.72rem;
+  margin-top: 4px;
+  opacity: 0.65;
+  font-weight: 700;
+  letter-spacing: 0.12em;
 }
 
 </style>
@@ -1259,13 +1454,25 @@ input:focus { border-color: var(--tide); }
         <input type="search" class="filter-search" id="colSearch" placeholder="Search name or id…" autocomplete="off">
       </div>
       <div id="creatureFilters">
+        <div class="filter-row view-toggle-row">
+          <span class="filter-label">View</span>
+          <button type="button" class="filter-chip active" data-cview="grid" id="btnViewGrid">Grid</button>
+          <button type="button" class="filter-chip" data-cview="binder" id="btnViewBinder">Binder</button>
+          <span class="filter-count" id="colShowCount"></span>
+        </div>
+        <div class="filter-row binder-sort-row" id="binderSortRow" hidden>
+          <span class="filter-label">Sort</span>
+          <button type="button" class="filter-chip active" data-bsort="number">Number</button>
+          <button type="button" class="filter-chip" data-bsort="tribe">Tribe</button>
+          <button type="button" class="filter-chip" data-bsort="rarity">Rarity</button>
+          <button type="button" class="filter-chip" data-bsort="name">Name</button>
+        </div>
         <div class="filter-row">
           <span class="filter-label">Tribe</span>
           <button type="button" class="filter-chip active" data-filter="tribe" data-tribe="all">All</button>
           <button type="button" class="filter-chip" data-filter="tribe" data-tribe="ember">Ember</button>
           <button type="button" class="filter-chip" data-filter="tribe" data-tribe="tide">Tide</button>
           <button type="button" class="filter-chip" data-filter="tribe" data-tribe="growth">Growth</button>
-          <span class="filter-count" id="colShowCount"></span>
         </div>
         <div class="filter-row">
           <span class="filter-label">Rarity</span>
@@ -1293,6 +1500,7 @@ input:focus { border-color: var(--tide); }
         </div>
       </div>
     </div>
+    <div class="col-toast" id="colToast" role="status"></div>
     <div id="col-creatures"></div>
     <div id="col-items" style="display:none"></div>
   </section>
@@ -1661,6 +1869,19 @@ input:focus { border-color: var(--tide); }
 
   const CREATURES = buildCreatures();
   const ITEMS = buildItems();
+
+  /* Stable dex numbers: CREATURES array index + 1 → #0001–#1000 */
+  const CREATURE_DEX_BY_ID = new Map();
+  CREATURES.forEach((c, i) => { CREATURE_DEX_BY_ID.set(c.id, i + 1); });
+  function creatureDexNum(c) {
+    if (!c) return 0;
+    const n = CREATURE_DEX_BY_ID.get(typeof c === 'string' ? c : c.id);
+    return n || 0;
+  }
+  function formatDex(n) {
+    const v = Math.max(0, n | 0);
+    return '#' + String(v).padStart(4, '0');
+  }
 
   /* CREATURE_META: design lore for the 11 originals.
      Drop finished art by setting artUrl on a meta entry (https or relative path)
@@ -2410,6 +2631,171 @@ input:focus { border-color: var(--tide); }
     itemType: 'all',
     tab: 'creatures'
   };
+  /* binderPage is JS-only (not persisted) */
+  let binderPage = 0;
+  let creatureView = 'grid'; // 'grid' | 'binder' — Items tab stays grid-only in v1
+  let binderSort = 'number'; // number | tribe | rarity | name
+  let binderNeedsOpenAnim = false;
+  const RARITY_SORT_RANK = { common: 0, rare: 1, legendary: 2 };
+  const TRIBE_SORT_RANK = { ember: 0, tide: 1, growth: 2 };
+
+  function showColToast(msg) {
+    const el = $('#colToast');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(showColToast._t);
+    showColToast._t = setTimeout(() => el.classList.remove('show'), 2800);
+  }
+
+  function binderPageSize() {
+    try {
+      return window.matchMedia('(min-width: 420px)').matches ? 9 : 4; // 3×3 wide / 2×2 narrow
+    } catch (e) {
+      return 4;
+    }
+  }
+
+  function syncCreatureViewChrome() {
+    const sortRow = $('#binderSortRow');
+    if (sortRow) sortRow.hidden = !(colFilter.tab === 'creatures' && creatureView === 'binder');
+    $$('#creatureFilters [data-cview]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.cview === creatureView);
+    });
+    $$('#binderSortRow [data-bsort]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.bsort === binderSort);
+    });
+  }
+
+  function creatureMatchesColFilters(c, q) {
+    if (colFilter.tribe !== 'all' && c.tribe !== colFilter.tribe) return false;
+    if (colFilter.rarity !== 'all' && c.rarity !== colFilter.rarity) return false;
+    if (q) {
+      const dex = formatDex(creatureDexNum(c)).toLowerCase();
+      const hay = (c.name + ' ' + c.id + ' ' + dex).toLowerCase();
+      if (hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  }
+
+  function sortBinderSequence(list) {
+    const arr = list.slice();
+    arr.sort((a, b) => {
+      const da = creatureDexNum(a);
+      const db = creatureDexNum(b);
+      if (binderSort === 'tribe') {
+        const ta = TRIBE_SORT_RANK[a.tribe] ?? 99;
+        const tb = TRIBE_SORT_RANK[b.tribe] ?? 99;
+        if (ta !== tb) return ta - tb;
+        return da - db;
+      }
+      if (binderSort === 'rarity') {
+        const ra = RARITY_SORT_RANK[a.rarity] ?? 99;
+        const rb = RARITY_SORT_RANK[b.rarity] ?? 99;
+        if (ra !== rb) return ra - rb;
+        return da - db;
+      }
+      if (binderSort === 'name') {
+        const cmp = String(a.name).localeCompare(String(b.name));
+        if (cmp) return cmp;
+        return da - db;
+      }
+      return da - db; // number (default)
+    });
+    return arr;
+  }
+
+  function renderBinderCreatures(cEl, q) {
+    /*
+     * FILTER CHOICE (v1): search / tribe / rarity filters reduce which slots
+     * appear in the binder sequence — including empty sleeves for unowned
+     * creatures that still match — so pages stay dense and complete rather
+     * than showing a fixed 1000-slot book with holes from filters.
+     */
+    const seq = sortBinderSequence(CREATURES.filter(c => creatureMatchesColFilters(c, q)));
+    const cc = $('#colShowCount');
+    if (cc) {
+      const ownedN = seq.filter(c => isCreatureOwned(c.id)).length;
+      cc.textContent = ownedN + '/' + seq.length + ' unlocked';
+    }
+    if (!seq.length) {
+      cEl.innerHTML = '<div class="empty-state"><div class="big">🔍</div>No creatures match these filters.<br>Try clearing search or chips.</div>';
+      return;
+    }
+    const pageSize = binderPageSize();
+    const totalPages = Math.max(1, Math.ceil(seq.length / pageSize));
+    if (binderPage >= totalPages) binderPage = totalPages - 1;
+    if (binderPage < 0) binderPage = 0;
+    const start = binderPage * pageSize;
+    const pageItems = seq.slice(start, start + pageSize);
+
+    const sleeves = pageItems.map(c => {
+      const dex = formatDex(creatureDexNum(c));
+      const owned = isCreatureOwned(c.id);
+      if (owned) {
+        return '<div class="binder-sleeve owned ' + c.tribe + '" data-cid="' + c.id + '" role="button" tabindex="0">' +
+          '<div class="sleeve-art">' + creatureArtHtml(c) + '</div>' +
+          '<div class="sleeve-name">' + c.name + '</div>' +
+          '<div class="sleeve-dex">' + dex + '</div>' +
+          '</div>';
+      }
+      // Unowned: dex only (+ optional ???) — no name/emoji/tribe/rarity spoilers
+      return '<div class="binder-sleeve empty" data-locked="1" aria-label="Locked ' + dex + '">' +
+        '<div class="sleeve-dex">' + dex + '</div>' +
+        '<div class="sleeve-unk">???</div>' +
+        '</div>';
+    }).join('');
+
+    const openClass = (binderNeedsOpenAnim && !prefersReducedMotion()) ? '' : ' is-open';
+    cEl.innerHTML =
+      '<div class="binder-shell' + openClass + '" id="binderShell">' +
+        '<div class="binder-cover" aria-hidden="true">' +
+          '<div class="binder-cover-crest">📖</div>' +
+          '<div class="binder-cover-title">CodeCreatures</div>' +
+          '<div class="binder-cover-sub">Creature Binder</div>' +
+          '<div class="binder-cover-hint">#0001 – #1000</div>' +
+        '</div>' +
+        '<div class="binder-pages">' +
+          '<div class="binder-nav">' +
+            '<button type="button" class="btn btn-ghost" id="binderPrev"' + (binderPage <= 0 ? ' disabled' : '') + '>Prev</button>' +
+            '<div class="page-label">Page ' + (binderPage + 1) + ' / ' + totalPages + '</div>' +
+            '<button type="button" class="btn btn-ghost" id="binderNext"' + (binderPage >= totalPages - 1 ? ' disabled' : '') + '>Next</button>' +
+          '</div>' +
+          '<div class="binder-grid">' + sleeves + '</div>' +
+        '</div>' +
+      '</div>';
+
+    const shell = $('#binderShell');
+    if (binderNeedsOpenAnim) {
+      binderNeedsOpenAnim = false;
+      if (prefersReducedMotion()) {
+        if (shell) shell.classList.add('is-open');
+      } else if (shell) {
+        shell.classList.remove('is-open');
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            shell.classList.add('is-opening');
+            shell.classList.add('is-open');
+          });
+        });
+      }
+    }
+
+    const prev = $('#binderPrev');
+    const next = $('#binderNext');
+    if (prev) prev.addEventListener('click', () => {
+      if (binderPage > 0) { binderPage--; renderCollection(); }
+    });
+    if (next) next.addEventListener('click', () => {
+      if (binderPage < totalPages - 1) { binderPage++; renderCollection(); }
+    });
+    cEl.querySelectorAll('.binder-sleeve.owned').forEach(sleeve => {
+      sleeve.addEventListener('click', () => openCreatureDetail(sleeve.dataset.cid));
+    });
+    cEl.querySelectorAll('.binder-sleeve.empty').forEach(sleeve => {
+      sleeve.addEventListener('click', () => showColToast('Scan to unlock'));
+    });
+  }
 
   function syncFilterPanels() {
     const cPanel = $('#creatureFilters');
@@ -2427,6 +2813,7 @@ input:focus { border-color: var(--tide); }
       $('#col-creatures').style.display = which === 'creatures' ? '' : 'none';
       $('#col-items').style.display = which === 'items' ? '' : 'none';
       syncFilterPanels();
+      syncCreatureViewChrome();
       renderCollection();
     });
   });
@@ -2435,6 +2822,7 @@ input:focus { border-color: var(--tide); }
   if (colSearchEl) {
     colSearchEl.addEventListener('input', () => {
       colFilter.search = (colSearchEl.value || '').trim().toLowerCase();
+      binderPage = 0;
       renderCollection();
     });
   }
@@ -2454,10 +2842,41 @@ input:focus { border-color: var(--tide); }
         colFilter.itemType = chip.dataset.type || 'all';
         $$('#itemFilters [data-filter="item-type"]').forEach(c => c.classList.toggle('active', c === chip));
       }
+      binderPage = 0;
       renderCollection();
     });
   });
   syncFilterPanels();
+  syncCreatureViewChrome();
+
+  $$('#creatureFilters [data-cview]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const next = btn.dataset.cview === 'binder' ? 'binder' : 'grid';
+      if (next === creatureView) return;
+      creatureView = next;
+      if (creatureView === 'binder') {
+        binderNeedsOpenAnim = true;
+        binderPage = 0;
+      }
+      syncCreatureViewChrome();
+      renderCollection();
+    });
+  });
+  $$('#binderSortRow [data-bsort]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      binderSort = btn.dataset.bsort || 'number';
+      binderPage = 0;
+      syncCreatureViewChrome();
+      renderCollection();
+    });
+  });
+  // Recalculate 2×2 vs 3×3 page size on resize while in binder
+  let _binderResizeT = null;
+  window.addEventListener('resize', () => {
+    if (creatureView !== 'binder' || colFilter.tab !== 'creatures') return;
+    clearTimeout(_binderResizeT);
+    _binderResizeT = setTimeout(() => renderCollection(), 150);
+  });
 
   function renderCollection() {
     updateTokenBalanceUI();
@@ -2465,7 +2884,11 @@ input:focus { border-color: var(--tide); }
     const iEl = $('#col-items');
     const q = colFilter.search;
 
-    if (!save.creatures.length) {
+    syncCreatureViewChrome();
+
+    if (creatureView === 'binder') {
+      renderBinderCreatures(cEl, q);
+    } else if (!save.creatures.length) {
       cEl.innerHTML = '<div class="empty-state"><div class="big">📭</div>No creatures yet.<br>Scan a code to unlock one!</div>';
       const cc = $('#colShowCount');
       if (cc) cc.textContent = '';
@@ -2477,15 +2900,7 @@ input:focus { border-color: var(--tide); }
         if (!c) return;
         ownedList.push(c);
       });
-      const filtered = ownedList.filter(c => {
-        if (colFilter.tribe !== 'all' && c.tribe !== colFilter.tribe) return false;
-        if (colFilter.rarity !== 'all' && c.rarity !== colFilter.rarity) return false;
-        if (q) {
-          const hay = (c.name + ' ' + c.id).toLowerCase();
-          if (hay.indexOf(q) === -1) return false;
-        }
-        return true;
-      });
+      const filtered = ownedList.filter(c => creatureMatchesColFilters(c, q));
       const cc = $('#colShowCount');
       if (cc) cc.textContent = filtered.length + ' shown';
       if (!filtered.length) {

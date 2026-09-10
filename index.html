@@ -325,6 +325,13 @@ input:focus { border-color: var(--tide); }
 .pull-card.tide { border-color: var(--tide); box-shadow: 0 0 40px rgba(45,212,191,0.35); }
 .pull-card.growth { border-color: var(--growth); box-shadow: 0 0 40px rgba(74,222,128,0.35); }
 .pull-card.item { border-color: var(--rare); box-shadow: 0 0 40px rgba(167,139,250,0.3); }
+.pull-card.battle { border-color: var(--ember); box-shadow: 0 0 40px rgba(255,107,53,0.4); }
+.pull-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+.pull-actions .btn { flex: 1; }
 .pull-emoji {
   font-size: 4.5rem;
   line-height: 1;
@@ -1451,7 +1458,7 @@ input:focus { border-color: var(--tide); }
 <body>
 <header class="app-header">
   <h1>CodeCreatures</h1>
-  <div class="sub">Scan codes · Collect · Battle</div>
+  <div class="sub">Scan codes · Collect · Practice</div>
 </header>
 
 <main class="screens">
@@ -1461,7 +1468,7 @@ input:focus { border-color: var(--tide); }
       <video id="scanVideo" playsinline muted></video>
       <div class="scan-overlay"><div class="scan-frame"></div></div>
     </div>
-    <div class="camera-status" id="cameraStatus">Camera is used to scan barcodes for creatures. Tap Start Camera when ready.</div>
+    <div class="camera-status" id="cameraStatus">Camera scans barcodes for creatures, items, or wild battles. Tap Start Camera when ready.</div>
     <div class="btn-row">
       <button class="btn btn-primary" id="btnStartCam" type="button">Start Camera</button>
       <button class="btn btn-ghost" id="btnStopCam" type="button" disabled>Stop</button>
@@ -1477,7 +1484,7 @@ input:focus { border-color: var(--tide); }
         <button class="btn btn-ember" id="btnManualScan" type="button">Scan</button>
       </div>
       <div class="scan-toast" id="scanToast" role="status"></div>
-      <p class="hint" id="manualHint">Same code always yields the same creature or item. Camera needs HTTPS or localhost.</p>
+      <p class="hint" id="manualHint">Same code always yields the same encounter (creature, item, or battle). Camera needs HTTPS or localhost.</p>
     </div>
   </section>
 
@@ -1575,16 +1582,16 @@ input:focus { border-color: var(--tide); }
   <!-- BATTLE -->
   <section id="screen-battle" class="screen">
     <div class="card">
-      <h2>Battle Arena</h2>
+      <h2>Practice Arena</h2>
       <div class="token-balance" id="tokenBalanceBattle" title="Code Coins — earn from battles. Shop can come later."><span class="tok-ico">🪙</span> Code Coins: <span id="tokenBalanceBattleValue">0</span></div>
-      <p class="hint" style="margin-top:0;margin-bottom:12px">Auto-battle your team of 3 vs unknown wild signals. Identities stay hidden until you unlock them by scanning. Speed decides who strikes first. Win for Code Coins (no pity).</p>
+      <p class="hint" style="margin-top:0;margin-bottom:12px">Practice auto-battles with your team of 3 vs unknown wild signals. Scan encounters can also send you here to fight. Speed decides who strikes first. Win for Code Coins (no pity). Item drops only from scan battles.</p>
       <div class="diff-chips" id="diffChips" role="group" aria-label="Battle difficulty">
         <span class="diff-label">Difficulty</span>
         <button type="button" class="filter-chip" data-diff="easy">Easy</button>
         <button type="button" class="filter-chip active" data-diff="normal">Normal</button>
         <button type="button" class="filter-chip" data-diff="hard">Hard</button>
       </div>
-      <button class="btn btn-ember" id="btnStartBattle" type="button">Start Battle</button>
+      <button class="btn btn-ember" id="btnStartBattle" type="button">Start Practice</button>
     </div>
     <div id="battleArea" style="display:none">
       <div class="battle-arena">
@@ -1601,7 +1608,7 @@ input:focus { border-color: var(--tide); }
         </div>
         <div class="battle-log" id="battleLog"></div>
         <div id="winnerBanner"></div>
-        <button class="btn btn-primary" id="btnBattleAgain" type="button" style="display:none;margin-top:8px">Battle Again</button>
+        <button class="btn btn-primary" id="btnBattleAgain" type="button" style="display:none;margin-top:8px">Practice Again</button>
       </div>
     </div>
   </section>
@@ -1611,7 +1618,7 @@ input:focus { border-color: var(--tide); }
   <button class="nav-btn active" data-screen="scan" type="button"><span class="ico">📷</span>Scan</button>
   <button class="nav-btn" data-screen="collection" type="button"><span class="ico">📦</span>Collection</button>
   <button class="nav-btn" data-screen="team" type="button"><span class="ico">⚔️</span>Team</button>
-  <button class="nav-btn" data-screen="battle" type="button"><span class="ico">🏟️</span>Battle</button>
+  <button class="nav-btn" data-screen="battle" type="button"><span class="ico">🏟️</span>Practice</button>
 </nav>
 
 <!-- Pull reveal -->
@@ -1623,6 +1630,20 @@ input:focus { border-color: var(--tide); }
     <div class="pull-stats" id="pullStats"></div>
     <div class="pull-note" id="pullNote"></div>
     <button class="btn btn-primary" id="btnPullClose" type="button">Got it!</button>
+  </div>
+</div>
+
+<!-- Scan battle encounter -->
+<div class="pull-overlay" id="encounterOverlay">
+  <div class="pull-card battle" id="encounterCard">
+    <div class="pull-emoji">⚔️</div>
+    <div class="pull-name">Wild signal challenge!</div>
+    <div class="pull-meta">A hostile code echo blocks the scan path.</div>
+    <div class="pull-note" style="color:var(--muted)">Fight to earn coins (and maybe an item). Flee still uses this code’s 24h cooldown.</div>
+    <div class="pull-actions">
+      <button class="btn btn-ghost" id="btnEncounterFlee" type="button">Flee</button>
+      <button class="btn btn-ember" id="btnEncounterFight" type="button">Fight</button>
+    </div>
   </div>
 </div>
 
@@ -2890,23 +2911,16 @@ input:focus { border-color: var(--tide); }
   function pullFromCode(code) {
     const h = fnv1a(String(code).trim());
     const roll = h % 100;
-    // ~2/3 creature, ~1/3 item
-    const isCreature = roll < 67;
-    // rarity tiers from higher bits
-    // Rarity among the rolled kind: common 70%, rare 29%, legendary 1%
-    // => legendary creature ≈ 0.67% of all scans (67% creature * 1%)
+    // 0–49 creature (~50%), 50–74 item (~25%), 75–99 battle (~25%)
+    // Creature/item rarity tiers from higher bits: common 70% / rare 29% / legendary 1%
     const tier = (h >>> 8) % 100;
     let rarity;
     if (tier < 70) rarity = 'common';
     else if (tier < 99) rarity = 'rare';
     else rarity = 'legendary';
 
-    if (isCreature) {
-      // legendary creatures only on legendary tier; map legendary item-path rare creatures ok
-      const c = creatureByRarity(rarity === 'legendary' ? 'legendary' : (rarity === 'rare' ? 'rare' : 'common'), h >>> 16);
-      // if legendary tier but no matching creature rarity for common roll path — already handled
-      // Bloomheart is legendary; ensure legendary tier can pick legendaries
-      let pick = c;
+    if (roll < 50) {
+      let pick;
       if (rarity === 'legendary') {
         const legends = CREATURES.filter(x => x.rarity === 'legendary');
         pick = legends[(h >>> 16) % legends.length];
@@ -2916,18 +2930,34 @@ input:focus { border-color: var(--tide); }
       } else {
         pick = creatureByRarity('common', h >>> 16);
       }
-      return { kind: 'creature', data: pick };
-    } else {
-      // Legendary tier: prefer legendary items when pool non-empty, else rare
+      return { kind: 'creature', data: pick, hash: h, roll: roll };
+    }
+    if (roll < 75) {
+      // Same item rarity logic as before: legendary tier may pick legendary/rare; else common
       if (rarity === 'legendary') {
         const legItems = ITEMS.filter(i => i.rarity === 'legendary');
         if (legItems.length) {
-          return { kind: 'item', data: itemByRarity('legendary', h >>> 16) };
+          return { kind: 'item', data: itemByRarity('legendary', h >>> 16), hash: h, roll: roll };
         }
-        return { kind: 'item', data: itemByRarity('rare', h >>> 16) };
+        return { kind: 'item', data: itemByRarity('rare', h >>> 16), hash: h, roll: roll };
       }
-      return { kind: 'item', data: itemByRarity('common', h >>> 16) };
+      return { kind: 'item', data: itemByRarity('common', h >>> 16), hash: h, roll: roll };
     }
+    return { kind: 'battle', code: String(code).trim(), hash: h, roll: roll };
+  }
+
+  /** Deterministic scan-battle item candidate (mostly common). Caller checks ~40% drop. */
+  function battleItemFromCode(code) {
+    const h = fnv1a(String(code).trim() + 'battle-item');
+    const tier = (h >>> 8) % 100;
+    let rarity = 'common';
+    if (tier >= 95) rarity = 'legendary';
+    else if (tier >= 85) rarity = 'rare';
+    if (rarity === 'legendary') {
+      const legItems = ITEMS.filter(i => i.rarity === 'legendary');
+      if (!legItems.length) rarity = 'rare';
+    }
+    return itemByRarity(rarity, h >>> 16);
   }
 
   function applyPull(result) {
@@ -3112,9 +3142,41 @@ input:focus { border-color: var(--tide); }
     $('#pullOverlay').classList.add('show');
   }
 
+  function showBattleEncounter(code) {
+    lastScanCode = code;
+    $('#encounterOverlay').classList.add('show');
+  }
+
+  function hideBattleEncounter() {
+    $('#encounterOverlay').classList.remove('show');
+  }
+
   $('#btnPullClose').addEventListener('click', () => {
     $('#pullOverlay').classList.remove('show');
     scanCooldown = false;
+  });
+
+  $('#btnEncounterFlee').addEventListener('click', () => {
+    hideBattleEncounter();
+    scanCooldown = false;
+    showScanToast('Fled the challenge. Code is on 24h cooldown.');
+  });
+
+  $('#btnEncounterFight').addEventListener('click', () => {
+    const code = lastScanCode;
+    hideBattleEncounter();
+    scanCooldown = false;
+    const teamIds = save.team.filter(Boolean);
+    if (teamIds.length !== 3 || new Set(teamIds).size !== 3) {
+      pendingScanBattle = null;
+      showScanToast('Need a team of 3 different creatures to fight.');
+      showScreen('team');
+      return;
+    }
+    pendingScanBattle = { code: code };
+    showScreen('battle');
+    // Auto-start scan encounter on Practice screen
+    setTimeout(() => { runBattle(); }, 50);
   });
 
   function processCode(code) {
@@ -3136,8 +3198,13 @@ input:focus { border-color: var(--tide); }
       hideScanToast();
       scanCooldown = true;
       lastScanCode = code;
+      // Consume 24h cooldown for every outcome (creature, item, or battle — including Flee)
       recordScan(code, now);
       const result = pullFromCode(code);
+      if (result.kind === 'battle') {
+        showBattleEncounter(code);
+        return;
+      }
       const meta = applyPull(result);
       showPull(result, meta);
       setTimeout(() => {
@@ -3171,7 +3238,7 @@ input:focus { border-color: var(--tide); }
     }
     const hint = $('#manualHint');
     if (hint) {
-      hint.textContent = 'Same code always yields the same creature or item. Camera needs HTTPS or localhost. Simulate Scan invents a unique code each tap.';
+      hint.textContent = 'Same code always yields the same encounter (creature, item, or battle). Camera needs HTTPS or localhost. Simulate Scan invents a unique code each tap.';
     }
   } else {
     const row = $('#simulateScanRow');
@@ -3239,14 +3306,14 @@ input:focus { border-color: var(--tide); }
     }
     $('#btnStartCam').disabled = false;
     $('#btnStopCam').disabled = true;
-    setCamStatus('Camera stopped. Tap Start Camera to scan barcodes for creatures, or use ' + scanFallbackHint() + '.');
+    setCamStatus('Camera stopped. Tap Start Camera to scan for creatures, items, or battles, or use ' + scanFallbackHint() + '.');
   }
 
   $('#btnStartCam').addEventListener('click', startCamera);
   $('#btnStopCam').addEventListener('click', stopCamera);
 
   // Do not auto-start camera — user must tap Start Camera
-  setCamStatus('Camera is used to scan barcodes for creatures. Tap Start Camera when ready.');
+  setCamStatus('Camera scans barcodes for creatures, items, or wild battles. Tap Start Camera when ready.');
   $('#btnStartCam').disabled = false;
   if (!(location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
     setCamStatus('Camera needs HTTPS or localhost. ' + scanFallbackHint() + ' work anytime.');
@@ -4162,6 +4229,8 @@ input:focus { border-color: var(--tide); }
 
   // ========== BATTLE ==========
   let battleBusy = false;
+  /** When set, current/next fight is a scan encounter (item drop eligible). Cleared after rewards. */
+  let pendingScanBattle = null;
 
   function makeFighter(creatureId) {
     const c = CREATURES.find(x => x.id === creatureId);
@@ -4306,8 +4375,11 @@ input:focus { border-color: var(--tide); }
       renderBench($('#enemyBench'), enemyTeam, eIdx);
     }
 
+    const isScanEncounter = !!(pendingScanBattle && pendingScanBattle.code);
+    const modeLabel = isScanEncounter ? 'Scan Encounter' : 'Practice';
+
     syncUI();
-    logBattle('Battle start! <strong>You</strong> vs <strong>Enemy</strong>.');
+    logBattle(modeLabel + ' start! <strong>You</strong> vs <strong>Enemy</strong>.');
     await sleep(600);
 
     while (playerTeam.some(f => f.alive) && enemyTeam.some(f => f.alive)) {
@@ -4372,9 +4444,14 @@ input:focus { border-color: var(--tide); }
     const banner = $('#winnerBanner');
     ensureTokenFields();
     // Battle stakes: earn-only Code Coins (no pity). Shop can come later.
+    // Scan-encounter wins may also drop an item (~40%); Practice never drops scan items.
     const diff = DIFF_MULT[battleDifficulty] || DIFF_MULT.normal;
     const diffLabel = diff.label;
+    const scanCode = isScanEncounter ? pendingScanBattle.code : null;
+    // Clear before grants so Practice Again cannot double-drop
+    pendingScanBattle = null;
     let gained = 0;
+    let dropItem = null;
     if (playerWin) {
       // 5 base + rarity tier per enemy (common +0, rare +2, legendary +5) + small variance
       let rarityBonus = 0;
@@ -4388,17 +4465,29 @@ input:focus { border-color: var(--tide); }
       gained = 5 + rarityBonus + variance + hardBonus;
       save.tokens = (save.tokens | 0) + gained;
       save.battleWins = (save.battleWins | 0) + 1;
+      if (scanCode) {
+        const dropH = fnv1a(String(scanCode) + 'battle-item');
+        if ((dropH % 100) < 40) {
+          dropItem = battleItemFromCode(scanCode);
+          save.items[dropItem.id] = (save.items[dropItem.id] || 0) + 1;
+        }
+      }
       persist();
       updateTokenBalanceUI();
-      banner.innerHTML = '<div class="winner-banner win">🏆 ' + diffLabel + ' win · +' + gained + ' coins<br><span style="font-size:0.85rem;font-weight:700">Balance: ' + save.tokens + ' · Wins: ' + save.battleWins + '</span></div>';
-      logBattle('<span class="log-win">' + diffLabel + ' victory! +' + gained + ' Code Coins (now ' + save.tokens + ').</span>');
+      let dropLine = '';
+      if (dropItem) {
+        dropLine = '<br><span style="font-size:0.85rem;font-weight:700">Loot: ' + dropItem.emoji + ' ' + dropItem.name + ' (' + dropItem.rarity + ')</span>';
+        logBattle('<span class="log-win">Scan loot: ' + dropItem.emoji + ' ' + dropItem.name + '!</span>');
+      }
+      banner.innerHTML = '<div class="winner-banner win">🏆 ' + modeLabel + ' · ' + diffLabel + ' win · +' + gained + ' coins' + dropLine + '<br><span style="font-size:0.85rem;font-weight:700">Balance: ' + save.tokens + ' · Wins: ' + save.battleWins + '</span></div>';
+      logBattle('<span class="log-win">' + modeLabel + ' · ' + diffLabel + ' victory! +' + gained + ' Code Coins (now ' + save.tokens + ').</span>');
     } else {
       gained = 2; // consolation so losses aren't empty
       save.tokens = (save.tokens | 0) + gained;
       persist();
       updateTokenBalanceUI();
-      banner.innerHTML = '<div class="winner-banner lose">💀 ' + diffLabel + ' loss · +' + gained + ' coins<br><span style="font-size:0.85rem;font-weight:700">Balance: ' + save.tokens + '</span></div>';
-      logBattle('<span class="log-ko">Your team was wiped out (' + diffLabel + '). Consolation +' + gained + ' Code Coins.</span>');
+      banner.innerHTML = '<div class="winner-banner lose">💀 ' + modeLabel + ' · ' + diffLabel + ' loss · +' + gained + ' coins<br><span style="font-size:0.85rem;font-weight:700">Balance: ' + save.tokens + '</span></div>';
+      logBattle('<span class="log-ko">Your team was wiped out (' + modeLabel + ' · ' + diffLabel + '). Consolation +' + gained + ' Code Coins.</span>');
     }
     syncUI();
     battleBusy = false;

@@ -815,6 +815,29 @@ input:focus { border-color: var(--tide); }
 .picker-tile .pn { font-size: 0.7rem; font-weight: 600; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Battle */
+.diff-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+  align-items: center;
+}
+.diff-chips .diff-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-weight: 700;
+  margin-right: 2px;
+}
+.diff-chips .filter-chip[data-diff="easy"].active {
+  border-color: var(--growth);
+  background: rgba(74,222,128,0.18);
+  box-shadow: 0 0 0 1px rgba(74,222,128,0.3);
+}
+.diff-chips .filter-chip[data-diff="hard"].active {
+  border-color: var(--ember);
+  background: rgba(255,107,53,0.18);
+  box-shadow: 0 0 0 1px rgba(255,107,53,0.3);
+}
 .battle-arena {
   display: flex;
   flex-direction: column;
@@ -1555,6 +1578,12 @@ input:focus { border-color: var(--tide); }
       <h2>Battle Arena</h2>
       <div class="token-balance" id="tokenBalanceBattle" title="Code Coins — earn from battles. Shop can come later."><span class="tok-ico">🪙</span> Code Coins: <span id="tokenBalanceBattleValue">0</span></div>
       <p class="hint" style="margin-top:0;margin-bottom:12px">Auto-battle your team of 3 vs unknown wild signals. Identities stay hidden until you unlock them by scanning. Speed decides who strikes first. Win for Code Coins (no pity).</p>
+      <div class="diff-chips" id="diffChips" role="group" aria-label="Battle difficulty">
+        <span class="diff-label">Difficulty</span>
+        <button type="button" class="filter-chip" data-diff="easy">Easy</button>
+        <button type="button" class="filter-chip active" data-diff="normal">Normal</button>
+        <button type="button" class="filter-chip" data-diff="hard">Hard</button>
+      </div>
       <button class="btn btn-ember" id="btnStartBattle" type="button">Start Battle</button>
     </div>
     <div id="battleArea" style="display:none">
@@ -2029,6 +2058,7 @@ input:focus { border-color: var(--tide); }
     speed: 14
     },
   };
+  /* Future art batches: drop PNGs in art/<tribe>/<rarity>/ named {id}.png, then merge those paths into ART_URLS. */
   const ART_URLS = {
     'ashking': 'art/originals/ashking.png',
     'bloomheart': 'art/originals/bloomheart.png',
@@ -2123,6 +2153,13 @@ input:focus { border-color: var(--tide); }
 
   const TYPE_ADV = { ember: 'tide', tide: 'growth', growth: 'ember' };
   const SAVE_KEY = 'codecreatures-save';
+  const DIFF_KEY = 'codecreatures-difficulty';
+  const DIFF_MULT = {
+    easy: { stat: 0.85, hpBonus: 0, label: 'Easy' },
+    normal: { stat: 1.0, hpBonus: 0, label: 'Normal' },
+    hard: { stat: 1.2, hpBonus: 8, label: 'Hard' }
+  };
+  let battleDifficulty = 'normal';
   const TRIBE_COLOR = { ember: 'ember', tide: 'tide', growth: 'growth' };
 
   // ========== SAVE ==========
@@ -3532,12 +3569,17 @@ input:focus { border-color: var(--tide); }
     const tribes = ['ember', 'tide', 'growth'];
     const marks = ['❓', '📡', '⬛', '👻', '🌑'];
     const labels = ['Wild Signal', 'Unknown Code', 'Static Echo', 'Null Spawn'];
+    const diff = DIFF_MULT[battleDifficulty] || DIFF_MULT.normal;
     let refAtk = 14, refDef = 12, refSpd = 12;
     if (playerFighters && playerFighters.length) {
       refAtk = Math.round(playerFighters.reduce((s, f) => s + f.attack, 0) / playerFighters.length);
       refDef = Math.round(playerFighters.reduce((s, f) => s + f.defense, 0) / playerFighters.length);
       refSpd = Math.round(playerFighters.reduce((s, f) => s + f.speed, 0) / playerFighters.length);
     }
+    // Scale player-ref stats by difficulty (Easy softer, Hard tougher).
+    refAtk = Math.max(1, Math.round(refAtk * diff.stat));
+    refDef = Math.max(1, Math.round(refDef * diff.stat));
+    refSpd = Math.max(1, Math.round(refSpd * diff.stat));
     const team = [];
     for (let i = 0; i < 3; i++) {
       const jitter = () => Math.floor(Math.random() * 5) - 2;
@@ -3547,7 +3589,7 @@ input:focus { border-color: var(--tide); }
       const rarityRoll = Math.random();
       const rarity = rarityRoll > 0.92 ? 'legendary' : rarityRoll > 0.7 ? 'rare' : 'common';
       const bonus = rarity === 'legendary' ? 20 : rarity === 'rare' ? 10 : 0;
-      const maxHp = 40 + defense * 2 + bonus;
+      const maxHp = 40 + defense * 2 + bonus + (diff.hpBonus | 0);
       team.push({
         id: 'wild-' + i + '-' + Date.now(),
         name: labels[i % labels.length] + ' ' + (i + 1),
@@ -3711,6 +3753,8 @@ input:focus { border-color: var(--tide); }
     const banner = $('#winnerBanner');
     ensureTokenFields();
     // Battle stakes: earn-only Code Coins (no pity). Shop can come later.
+    const diff = DIFF_MULT[battleDifficulty] || DIFF_MULT.normal;
+    const diffLabel = diff.label;
     let gained = 0;
     if (playerWin) {
       // 5 base + rarity tier per enemy (common +0, rare +2, legendary +5) + small variance
@@ -3719,27 +3763,56 @@ input:focus { border-color: var(--tide); }
         if (f.rarity === 'legendary') rarityBonus += 5;
         else if (f.rarity === 'rare') rarityBonus += 2;
       });
-      const variance = Math.floor(Math.random() * 3); // 0–2
-      gained = 5 + rarityBonus + variance;
+      // Easy: no variance (+0). Normal: 0–2. Hard: +2 token bonus + normal variance.
+      const variance = battleDifficulty === 'easy' ? 0 : Math.floor(Math.random() * 3); // 0–2
+      const hardBonus = battleDifficulty === 'hard' ? 2 : 0;
+      gained = 5 + rarityBonus + variance + hardBonus;
       save.tokens = (save.tokens | 0) + gained;
       save.battleWins = (save.battleWins | 0) + 1;
       persist();
       updateTokenBalanceUI();
-      banner.innerHTML = '<div class="winner-banner win">🏆 Victory! +' + gained + ' Code Coins<br><span style="font-size:0.85rem;font-weight:700">Balance: ' + save.tokens + ' · Wins: ' + save.battleWins + '</span></div>';
-      logBattle('<span class="log-win">You win the battle! +' + gained + ' Code Coins (now ' + save.tokens + ').</span>');
+      banner.innerHTML = '<div class="winner-banner win">🏆 ' + diffLabel + ' win · +' + gained + ' coins<br><span style="font-size:0.85rem;font-weight:700">Balance: ' + save.tokens + ' · Wins: ' + save.battleWins + '</span></div>';
+      logBattle('<span class="log-win">' + diffLabel + ' victory! +' + gained + ' Code Coins (now ' + save.tokens + ').</span>');
     } else {
       gained = 2; // consolation so losses aren't empty
       save.tokens = (save.tokens | 0) + gained;
       persist();
       updateTokenBalanceUI();
-      banner.innerHTML = '<div class="winner-banner lose">💀 Defeat… +' + gained + ' Code Coins<br><span style="font-size:0.85rem;font-weight:700">Balance: ' + save.tokens + '</span></div>';
-      logBattle('<span class="log-ko">Your team was wiped out. Consolation +' + gained + ' Code Coins.</span>');
+      banner.innerHTML = '<div class="winner-banner lose">💀 ' + diffLabel + ' loss · +' + gained + ' coins<br><span style="font-size:0.85rem;font-weight:700">Balance: ' + save.tokens + '</span></div>';
+      logBattle('<span class="log-ko">Your team was wiped out (' + diffLabel + '). Consolation +' + gained + ' Code Coins.</span>');
     }
     syncUI();
     battleBusy = false;
     $('#btnStartBattle').disabled = false;
     $('#btnBattleAgain').style.display = '';
   }
+
+  function setBattleDifficulty(level) {
+    if (!DIFF_MULT[level]) level = 'normal';
+    battleDifficulty = level;
+    $$('#diffChips .filter-chip').forEach(chip => {
+      chip.classList.toggle('active', chip.getAttribute('data-diff') === battleDifficulty);
+    });
+    if (storage) {
+      try { storage.setItem(DIFF_KEY, battleDifficulty); } catch (e) { /* ignore */ }
+    }
+  }
+  (function loadBattleDifficulty() {
+    let loaded = 'normal';
+    if (storage) {
+      try {
+        const v = storage.getItem(DIFF_KEY);
+        if (v && DIFF_MULT[v]) loaded = v;
+      } catch (e) { /* ignore */ }
+    }
+    setBattleDifficulty(loaded);
+  })();
+  $$('#diffChips .filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (battleBusy) return;
+      setBattleDifficulty(chip.getAttribute('data-diff'));
+    });
+  });
 
   $('#btnStartBattle').addEventListener('click', runBattle);
   $('#btnBattleAgain').addEventListener('click', runBattle);
